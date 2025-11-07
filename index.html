@@ -669,6 +669,16 @@
                     cambiarTurno();
                 }
             });
+
+            // =========================================================
+            // CORRECCIÓN CLAVE: Asignación del botón de alerta aquí (una sola vez)
+            // =========================================================
+            const showKeyBtn = document.getElementById('show-key-btn');
+            if (showKeyBtn) {
+                // Para deshabilitar la funcionalidad del botón de alerta, 
+                // simplemente comenta la línea de abajo (añade // al principio).
+                showKeyBtn.addEventListener('click', mostrarClaveEnAlerta);
+            }
         });
     </script>
 
