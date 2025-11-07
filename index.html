@@ -136,6 +136,9 @@
         const USADAS_STORAGE_KEY = 'juegoDeEspias_palabrasUsadas';
         const PALABRAS_MAPA = new Map(PALABRAS_SECRETAS.map(p => [p.id, p.palabra]));
 
+        // CLAVE SECRETA DE CIFRADO
+        const ENCRYPTION_KEY = "AGENT33";
+
         // --- VARIABLES DE ESTADO DEL JUEGO ---
         let tableroLogico = [];
         let juegoTerminado = false;
@@ -143,6 +146,124 @@
         let agentesAzulesRestantes = 0;
         let turnoActual = TIPOS_CARTA.AZUL;
         // -------------------------------------
+
+        // =========================================================
+        // FUNCIONES DE CIFRADO
+        // =========================================================
+
+        /**
+         * Cifra una cadena de texto utilizando el cifrado XOR con una clave secreta.
+         * @param {string} text - La cadena a cifrar/descifrar.
+         * @returns {string} La cadena cifrada/descifrada.
+         */
+        function cifrarXOR(text) {
+            let output = '';
+            for (let i = 0; i < text.length; i++) {
+                // Obtiene el código de carácter de la clave, repitiéndose
+                const keyChar = ENCRYPTION_KEY.charCodeAt(i % ENCRYPTION_KEY.length);
+                // Aplica la operación XOR y convierte de nuevo a carácter
+                const cipherChar = text.charCodeAt(i) ^ keyChar;
+                output += String.fromCharCode(cipherChar);
+            }
+            // Codifica el resultado binario en Base64 para hacerlo seguro para URLs/texto
+            return btoa(output);
+        }
+
+        /**
+         * Descifra una cadena Base64 cifrada con XOR.
+         * @param {string} base64String - La cadena cifrada en Base64.
+         * @returns {string} La cadena de texto original.
+         */
+        function descifrarXOR(base64String) {
+            try {
+                // Decodifica de Base64 para obtener el string binario cifrado
+                const cipherText = atob(base64String);
+                let output = '';
+                for (let i = 0; i < cipherText.length; i++) {
+                    // Repite el proceso XOR, ya que es simétrico (A XOR K = C, C XOR K = A)
+                    const keyChar = ENCRYPTION_KEY.charCodeAt(i % ENCRYPTION_KEY.length);
+                    const originalChar = cipherText.charCodeAt(i) ^ keyChar;
+                    output += String.fromCharCode(originalChar);
+                }
+                return output;
+            } catch (e) {
+                console.error("Error al descifrar la cadena. ¿Clave incorrecta o formato Base64 inválido?", e);
+                return null;
+            }
+        }
+
+
+
+        // =========================================================
+        // FUNCIONES DE CODIFICACIÓN Y DECODIFICACIÓN
+        // =========================================================
+
+        function codificarTablero() {
+            if (tableroLogico.length !== 25) {
+                return null;
+            }
+
+            const estadoCodificado = tableroLogico.map(card => ({
+                id: card.id,
+                type: TIPOS_CARTA.MAPEO_CODIGO[card.type],
+                // ✨ CLAVE: Incluir el estado de revelación. Usamos 'r' para compactar.
+                r: card.revealed
+            }));
+
+            const cadenaJSON = JSON.stringify(estadoCodificado);
+
+            // 🔑 CIFRAR el resultado antes de devolverlo
+            return cifrarXOR(cadenaJSON);
+        }
+
+        /**
+         * Descifra una cadena Base64 y reconstruye el tablero lógico.
+         * @param {string} cadenaCifrada - Cadena Base64 cifrada del tablero.
+         * @returns {Array|null} El array del tablero lógico reconstruido.
+         */
+        function decodificarTablero(cadenaCifrada) {
+            // 🔑 DESCIFRAR la cadena para obtener el JSON original
+            const cadenaJSON = descifrarXOR(cadenaCifrada);
+            if (!cadenaJSON) return null;
+
+            try {
+                const estadoDecodificado = JSON.parse(cadenaJSON);
+
+                if (!Array.isArray(estadoDecodificado) || estadoDecodificado.length !== 25) {
+                    console.error("Error: La cadena decodificada no es una lista de 25 items.");
+                    return null;
+                }
+
+                const nuevoTablero = estadoDecodificado.map(item => {
+                    const word = PALABRAS_MAPA.get(item.id);
+                    const type = TIPOS_CARTA.MAPEO_INVERSO[item.type];
+
+                    if (!word || !type) {
+                        throw new Error("ID o Tipo de palabra inválido al decodificar.");
+                    }
+
+                    return {
+                        id: item.id,
+                        word: word,
+                        type: type,
+                        // ✨ CLAVE: Usar el valor 'r' (revealed) al decodificar
+                        revealed: item.r || false
+                    };
+                });
+
+                // Reemplazar el tablero global y actualizar contadores
+                tableroLogico = nuevoTablero;
+
+                // 🚨 Es crucial que esta función actualice la UI para mostrar las cartas reveladas
+                actualizarContadoresDeTablero(nuevoTablero);
+
+                return nuevoTablero;
+
+            } catch (e) {
+                console.error("Error al procesar el JSON del tablero descifrado:", e);
+                return null;
+            }
+        }
 
         /**
          * Actualiza los contadores de agentes y el turno inicial basándose en el tablero decodificado.
@@ -504,6 +625,20 @@
                 setTimeout(mostrarBotonesInicio, 1500);
             }
         }
+
+        // =========================================================
+        // EXPOSICIÓN GLOBAL DE FUNCIONES 
+        // =========================================================
+        window.codificarTablero = codificarTablero;
+        // También exponemos el descifrado y cifrado por si lo necesitas
+        window.descifrarTablero = decodificarTablero;
+        window.cifrarXOR = cifrarXOR;
+        window.descifrarXOR = descifrarXOR;
+
+        // =========================================================
+        // RESTO DE FUNCIONES (DOMContentLoaded, etc.)
+        // =========================================================
+
 
         // 4. Inicializar la página en estado de espera y asignar manejadores de eventos.
         document.addEventListener('DOMContentLoaded', () => {
