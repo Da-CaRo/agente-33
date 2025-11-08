@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Juego de Espías - Tablero Digital</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/qrious@4.0.2/dist/qrious.js"></script>
     <style>
         /* Estilos personalizados para la tipografía del juego */
         .card-text {
@@ -314,12 +315,37 @@
             if (estadoCifrado) {
                 // Generar la URL base + el parámetro clave
                 const urlBase = window.location.origin + window.location.pathname;
-                const claveURL = `${urlBase}?clave=${encodeURIComponent(estadoCifrado)}`;
+                const urlToShare = `${urlBase}?clave=${encodeURIComponent(estadoCifrado)}`;
 
-                prompt("Copia y comparte este enlace con el Líder de Espías:", claveURL);
+                // Opción 1 (Predeterminada): Mostrar Código QR
+                mostrarQR(urlToShare);
+
+                /*
+                // Opción 2: Usar el viejo 'prompt' (Descomentar esta línea y comentar la línea 1)
+                // prompt("Copia y comparte este enlace con el Líder de Espías:", urlToShare);
+                */
             } else {
                 alert("La partida no ha comenzado o es inválida.");
             }
+        }
+
+        /**
+         * Genera un código QR para la URL proporcionada y lo muestra en un modal.
+         * @param {string} url - La URL de la clave secreta a codificar.
+         */
+        function mostrarQR(url) {
+            const qrCanvas = document.getElementById('qr-canvas');
+            const qrModal = document.getElementById('qr-modal');
+
+            // 1. Generar el código QR
+            new QRious({
+                element: qrCanvas,
+                value: url,
+                size: 250 // Tamaño del QR
+            });
+
+            // 2. Mostrar el modal
+            qrModal.classList.remove('hidden');
         }
 
         /**
@@ -878,6 +904,14 @@
             }
         });
     </script>
+    <div id="qr-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-90 flex items-center justify-center z-50 p-4"
+        onclick="this.classList.add('hidden')">
+        <div class="bg-white p-8 rounded-lg shadow-2xl max-w-sm w-full text-center" onclick="event.stopPropagation()">
+            <h3 class="text-2xl font-bold text-gray-900 mb-4">Escanea la Clave Secreta</h3>
+            <canvas id="qr-canvas" class="w-full h-auto mx-auto border-4 border-gray-200 rounded-lg"></canvas>
+            <p class="text-sm text-gray-500 mt-4">Haz clic fuera para cerrar.</p>
+        </div>
+    </div>
 
 </body>
 
