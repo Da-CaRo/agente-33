@@ -1,5 +1,3 @@
-// palabras.js
-
 export const PALABRAS_SECRETAS = [
     { id: 1, palabra: "ÁGUILA" },
     { id: 2, palabra: "ANILLO" },
@@ -101,7 +99,6 @@ export const PALABRAS_SECRETAS = [
     { id: 98, palabra: "VENENO" },
     { id: 99, palabra: "VENUS" },
     { id: 100, palabra: "ZAPATO" },
-    // --- 400 PALABRAS ADICIONALES ---
     { id: 101, palabra: "ABANICO" },
     { id: 102, palabra: "ABOGADO" },
     { id: 103, palabra: "ACERO" },
