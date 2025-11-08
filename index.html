@@ -68,6 +68,10 @@
             </div>
 
             <div id="game-controls" class="flex space-x-4 w-full sm:w-auto justify-end">
+                <button id="reset-game-btn"
+                    class="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-6 rounded-full transition duration-150 text-xl w-full sm:w-auto shadow-lg hover:shadow-xl disabled:opacity-50 hidden">
+                    🗑️ Reiniciar Partida
+                </button>
                 <button id="show-key-btn"
                     class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-full transition duration-150 text-xl w-full sm:w-auto shadow-lg hover:shadow-xl disabled:opacity-50 hidden">
                     👁️ Ver Clave Secreta
@@ -132,12 +136,15 @@
             }
         };
 
-        // Constante para la clave de almacenamiento
+        // Constante para la clave de almacenamiento de palabras usadas
         const USADAS_STORAGE_KEY = 'juegoDeEspias_palabrasUsadas';
         const PALABRAS_MAPA = new Map(PALABRAS_SECRETAS.map(p => [p.id, p.palabra]));
 
         // CLAVE SECRETA DE CIFRADO
         const ENCRYPTION_KEY = "AGENT33";
+
+        // ✨ NUEVA CLAVE: Para guardar el estado del tablero
+        const GAME_STATE_STORAGE_KEY = 'juegoDeEspias_estadoActual';
 
         // --- VARIABLES DE ESTADO DEL JUEGO ---
         let tableroLogico = [];
@@ -193,9 +200,111 @@
         }
 
 
+        // =========================================================
+        // FUNCIONES DE GUARDADO Y CARGA (LOCALSTORAGE)
+        // =========================================================
+
+        /**
+         * Guarda el estado actual del tablero y el turno en LocalStorage.
+         */
+        function guardarEstadoPartida() {
+            // Se añaden el turno y el estado del juego al objeto a codificar
+            const estadoPartida = {
+                tablero: tableroLogico.map(card => ({
+                    id: card.id,
+                    type: TIPOS_CARTA.MAPEO_CODIGO[card.type],
+                    r: card.revealed
+                })),
+                turno: turnoActual,
+                terminado: juegoTerminado
+            };
+
+            const cadenaJSON = JSON.stringify(estadoPartida);
+
+            // 🔑 CIFRAR el resultado antes de guardarlo
+            const estadoCifrado = cifrarXOR(cadenaJSON);
+            if (estadoCifrado) {
+                localStorage.setItem(GAME_STATE_STORAGE_KEY, estadoCifrado);
+                console.log("Partida guardada automáticamente.");
+            }
+        }
+
+
+        /**
+         * Carga la partida desde LocalStorage si existe un estado guardado.
+         * @returns {boolean} True si se cargó la partida, False si no.
+         */
+        function cargarEstadoPartida() {
+            const estadoCifrado = localStorage.getItem(GAME_STATE_STORAGE_KEY);
+            if (!estadoCifrado) return false;
+
+            const cadenaJSON = descifrarXOR(estadoCifrado);
+            if (!cadenaJSON) return false;
+
+            try {
+                const estadoPartida = JSON.parse(cadenaJSON);
+                const estadoDecodificado = estadoPartida.tablero;
+
+                if (!Array.isArray(estadoDecodificado) || estadoDecodificado.length !== 25) {
+                    console.error("Error: La cadena decodificada no es una lista de 25 items.");
+                    return false;
+                }
+
+                // 1. Reconstruir el tablero lógico
+                const nuevoTablero = estadoDecodificado.map(item => {
+                    const word = PALABRAS_MAPA.get(item.id);
+                    const type = TIPOS_CARTA.MAPEO_INVERSO[item.type];
+
+                    if (!word || !type) throw new Error("ID o Tipo de palabra inválido al decodificar.");
+
+                    return {
+                        id: item.id,
+                        word: word,
+                        type: type,
+                        revealed: item.r || false
+                    };
+                });
+
+                // 2. Actualizar variables de estado global
+                tableroLogico = nuevoTablero;
+                turnoActual = estadoPartida.turno || TIPOS_CARTA.AZUL; // Usar el turno guardado
+                juegoTerminado = estadoPartida.terminado || false;
+
+                // 3. Recalcular contadores y actualizar UI
+                actualizarContadoresDeTablero(nuevoTablero);
+
+                console.log("¡Partida cargada automáticamente desde LocalStorage!");
+                return true;
+
+            } catch (e) {
+                console.error("Error al procesar el JSON del tablero descifrado:", e);
+                limpiarEstadoPartida(); // Borrar estado corrupto
+                return false;
+            }
+        }
+
+
+        /**
+         * Elimina el estado de la partida guardada al finalizar el juego o al reiniciar manualmente.
+         */
+        function limpiarEstadoPartida() {
+            localStorage.removeItem(GAME_STATE_STORAGE_KEY);
+            console.log("Estado guardado borrado.");
+        }
+
+        /**
+         * Elimina el estado de la partida guardada y devuelve la UI al estado inicial.
+         */
+        function reiniciarPartida() {
+            if (confirm("¿Estás seguro de que quieres borrar la partida actual y volver a la pantalla de inicio?")) {
+                limpiarEstadoPartida(); // Borra el estado del LocalStorage
+                mostrarBotonesInicio();  // Restablece la UI al estado inicial
+            }
+        }
+
 
         // =========================================================
-        // FUNCIONES DE CODIFICACIÓN Y DECODIFICACIÓN
+        // FUNCIONES DE CODIFICACIÓN Y DECODIFICACIÓN (se mantienen)
         // =========================================================
 
         function codificarTablero() {
@@ -206,7 +315,6 @@
             const estadoCodificado = tableroLogico.map(card => ({
                 id: card.id,
                 type: TIPOS_CARTA.MAPEO_CODIGO[card.type],
-                // ✨ CLAVE: Incluir el estado de revelación. Usamos 'r' para compactar.
                 r: card.revealed
             }));
 
@@ -216,108 +324,39 @@
             return cifrarXOR(cadenaJSON);
         }
 
-        /**
-         * Descifra una cadena Base64 y reconstruye el tablero lógico.
-         * @param {string} cadenaCifrada - Cadena Base64 cifrada del tablero.
-         * @returns {Array|null} El array del tablero lógico reconstruido.
-         */
-        function decodificarTablero(cadenaCifrada) {
-            // 🔑 DESCIFRAR la cadena para obtener el JSON original
-            const cadenaJSON = descifrarXOR(cadenaCifrada);
-            if (!cadenaJSON) return null;
+        // Se ha movido la lógica de decodificación a cargarEstadoPartida para mejor encapsulación
+        // y manejo del estado global. La función decodificarTablero original ya no es necesaria.
 
-            try {
-                const estadoDecodificado = JSON.parse(cadenaJSON);
-
-                if (!Array.isArray(estadoDecodificado) || estadoDecodificado.length !== 25) {
-                    console.error("Error: La cadena decodificada no es una lista de 25 items.");
-                    return null;
-                }
-
-                const nuevoTablero = estadoDecodificado.map(item => {
-                    const word = PALABRAS_MAPA.get(item.id);
-                    const type = TIPOS_CARTA.MAPEO_INVERSO[item.type];
-
-                    if (!word || !type) {
-                        throw new Error("ID o Tipo de palabra inválido al decodificar.");
-                    }
-
-                    return {
-                        id: item.id,
-                        word: word,
-                        type: type,
-                        // ✨ CLAVE: Usar el valor 'r' (revealed) al decodificar
-                        revealed: item.r || false
-                    };
-                });
-
-                // Reemplazar el tablero global y actualizar contadores
-                tableroLogico = nuevoTablero;
-
-                // 🚨 Es crucial que esta función actualice la UI para mostrar las cartas reveladas
-                actualizarContadoresDeTablero(nuevoTablero);
-
-                return nuevoTablero;
-
-            } catch (e) {
-                console.error("Error al procesar el JSON del tablero descifrado:", e);
-                return null;
-            }
-        }
 
         /**
          * Actualiza los contadores de agentes y el turno inicial basándose en el tablero decodificado.
          * @param {Array} tablero - El tablero lógico a analizar.
          */
         function actualizarContadoresDeTablero(tablero) {
-            let rojosTotales = 0;
-            let azulesTotales = 0;
 
-            // Contar agentes totales y agentes restantes (los que NO están revelados)
-            tablero.forEach(card => {
-                if (card.type === TIPOS_CARTA.ROJO) {
-                    rojosTotales++;
-                    if (card.revealed) agentesRojosRestantes--; // Si está revelada, resta del contador
-                } else if (card.type === TIPOS_CARTA.AZUL) {
-                    azulesTotales++;
-                    if (card.revealed) agentesAzulesRestantes--; // Si está revelada, resta del contador
-                }
-            });
-
-            // Resetear y recalcular los contadores de juego
+            // 1. Recalcular los contadores de juego
             agentesRojosRestantes = tablero.filter(c => c.type === TIPOS_CARTA.ROJO && !c.revealed).length;
             agentesAzulesRestantes = tablero.filter(c => c.type === TIPOS_CARTA.AZUL && !c.revealed).length;
 
-            // Determinar el turno inicial (el que tenía 9 agentes al inicio)
-            // Esto es más complejo, un estado de partida ideal también debería guardar el 'turnoActual'.
-            // Por simplicidad, asumiremos que si hay más cartas azules en total (9) que rojas (8),
-            // el turno inicial fue azul, y viceversa.
-            // **NOTA:** Para reanudar el estado exacto del turno, la codificación debería guardar también 'turnoActual'.
-            const agentesRojosIniciales = tablero.filter(c => c.type === TIPOS_CARTA.ROJO).length;
-            const agentesAzulesIniciales = tablero.filter(c => c.type === TIPOS_CARTA.AZUL).length;
-
-            turnoActual = (agentesAzulesIniciales > agentesRojosIniciales) ? TIPOS_CARTA.AZUL : TIPOS_CARTA.ROJO;
-
-            juegoTerminado = false; // Asumimos que no está terminado a menos que una carta asesina esté revelada.
+            // 2. Determinar si el juego terminó
+            juegoTerminado = false;
             if (tablero.find(c => c.type === TIPOS_CARTA.ASESINO && c.revealed)) {
                 juegoTerminado = true;
-            }
-
-            // Verificar si algún equipo ganó por conteo de agentes
-            if (agentesAzulesRestantes === 0 || agentesRojosRestantes === 0) {
+            } else if (agentesAzulesRestantes === 0 || agentesRojosRestantes === 0) {
                 juegoTerminado = true;
             }
 
             ocultarBotonesInicio();
             document.getElementById('pass-turn-btn').disabled = juegoTerminado;
-            renderizarTablero(); // Redibuja el tablero, aplicando estilos a las cartas reveladas
+
+            renderizarTablero(true); // Redibuja el tablero, aplicando estilos a las cartas reveladas
             actualizarPuntuacion();
             actualizarIndicadorTurno();
             mostrarClaveEnConsola();
         }
 
         // =========================================================
-        // RESTO DE FUNCIONES (Solo se muestra 'inicializarJuego' y 'DOMContentLoaded' con demos)
+        // RESTO DE FUNCIONES
         // =========================================================
 
         function cargarIdsUsados() {
@@ -394,6 +433,8 @@
             agentesAzulesRestantes = (firstTeam === TIPOS_CARTA.AZUL) ? 9 : 8;
             agentesRojosRestantes = (firstTeam === TIPOS_CARTA.ROJO) ? 9 : 8;
 
+            limpiarEstadoPartida(); // ✨ Limpiar el estado anterior (si existe)
+
             ocultarBotonesInicio();
             document.getElementById('pass-turn-btn').disabled = false;
 
@@ -401,12 +442,10 @@
             actualizarPuntuacion();
             actualizarIndicadorTurno();
 
-            // Llama a la función de consola y guarda el estado codificado en la consola.
             mostrarClaveEnConsola();
-            // console.log("Cadena Codificada del Tablero:", codificarTablero()); // DESCOMENTAR PARA VER LA CADENA COMPLETA
+            guardarEstadoPartida(); // ✨ Guardar el estado inicial de la nueva partida.
         }
 
-        // ... (Resto de funciones: mostrarClaveEnConsola, mostrarClaveEnAlerta, mostrarBotonesInicio, etc.) ...
         function mostrarClaveEnConsola() {
             if (!tableroLogico || tableroLogico.length !== 25) return;
 
@@ -446,6 +485,7 @@
             document.getElementById('start-buttons').classList.remove('hidden');
             document.getElementById('pass-turn-btn').classList.add('hidden');
             document.getElementById('show-key-btn').classList.add('hidden');
+            document.getElementById('reset-game-btn').classList.add('hidden'); // ✨ Ocultar Reiniciar
 
             document.getElementById('game-board').innerHTML = '<div class="text-center text-gray-400 text-3xl p-10 col-span-5">Selecciona el equipo que empieza para comenzar una nueva partida.</div>';
 
@@ -461,6 +501,7 @@
             document.getElementById('start-buttons').classList.add('hidden');
             document.getElementById('pass-turn-btn').classList.remove('hidden');
             document.getElementById('show-key-btn').classList.remove('hidden');
+            document.getElementById('reset-game-btn').classList.remove('hidden'); // ✨ Mostrar Reiniciar
         }
 
 
@@ -472,6 +513,7 @@
 
             turnoActual = (turnoActual === TIPOS_CARTA.AZUL) ? TIPOS_CARTA.ROJO : TIPOS_CARTA.AZUL;
             actualizarIndicadorTurno();
+            guardarEstadoPartida(); // ✨ Guardar estado al cambiar de turno manualmente
             console.log(`¡Turno cambiado! Ahora es el turno del equipo ${turnoActual.toUpperCase()}.`);
         }
 
@@ -528,6 +570,7 @@
             cardDiv.classList.remove('cursor-pointer', 'hover:shadow-2xl', 'transition', 'duration-150', 'transform', 'hover:scale-[1.01]', 'bg-gray-200', 'text-gray-900');
 
             actualizarPuntuacion();
+            guardarEstadoPartida(); // ✨ Guardar el estado después de cada movimiento
 
             // 1. Verificar si hay victoria o derrota por Asesino
             verificarFinJuego();
@@ -552,28 +595,59 @@
         /**
          * Función que inserta las tarjetas en el DOM y asigna eventos.
          */
-        function renderizarTablero() {
+        function renderizarTablero(updateOnly = false) {
             const board = document.getElementById('game-board');
-            board.innerHTML = '';
+
+            if (!updateOnly) {
+                board.innerHTML = '';
+            }
 
             tableroLogico.forEach((card, index) => {
-                const cardDiv = document.createElement('div');
-                cardDiv.className = 'card bg-gray-200 text-gray-900 flex items-center justify-center p-1 sm:p-2 rounded-lg shadow-xl cursor-pointer hover:shadow-2xl transition duration-150 transform hover:scale-[1.01] aspect-square';
-                cardDiv.setAttribute('data-index', index);
-                cardDiv.setAttribute('data-id', card.id);
+                let cardDiv = document.querySelector(`.card[data-index="${index}"]`);
+                let isNewCard = false;
 
-                const textSpan = document.createElement('span');
-                textSpan.className = 'card-text font-bold uppercase text-center';
-                textSpan.textContent = card.word;
+                if (!cardDiv) {
+                    cardDiv = document.createElement('div');
+                    isNewCard = true;
+                }
 
-                cardDiv.appendChild(textSpan);
-                board.appendChild(cardDiv);
+                if (card.revealed) {
+                    let cssClass = '';
+                    switch (card.type) {
+                        case TIPOS_CARTA.ROJO: cssClass = 'bg-red-agent'; break;
+                        case TIPOS_CARTA.AZUL: cssClass = 'bg-blue-agent'; break;
+                        case TIPOS_CARTA.NEUTRAL: cssClass = 'bg-neutral-agent'; break;
+                        case TIPOS_CARTA.ASESINO: cssClass = 'bg-assassin'; break;
+                    }
+                    // Aplicar estilo de revelación
+                    cardDiv.className = `card ${cssClass} flex items-center justify-center p-1 sm:p-2 rounded-lg shadow-xl aspect-square`;
+                } else {
+                    // Estilo normal (no revelado)
+                    cardDiv.className = 'card bg-gray-200 text-gray-900 flex items-center justify-center p-1 sm:p-2 rounded-lg shadow-xl cursor-pointer hover:shadow-2xl transition duration-150 transform hover:scale-[1.01] aspect-square';
+                    cardDiv.addEventListener('click', manejarClickTarjeta);
+                }
+
+                if (isNewCard) {
+                    cardDiv.setAttribute('data-index', index);
+                    cardDiv.setAttribute('data-id', card.id);
+
+                    const textSpan = document.createElement('span');
+                    textSpan.className = 'card-text font-bold uppercase text-center';
+                    textSpan.textContent = card.word;
+                    cardDiv.appendChild(textSpan);
+                    board.appendChild(cardDiv);
+                }
             });
 
-            // Asignar el Event Listener a todas las tarjetas
-            document.querySelectorAll('.card').forEach(card => {
-                card.addEventListener('click', manejarClickTarjeta);
-            });
+            // Re-asignar eventos si es necesario (para asegurar que las cargadas funcionan)
+            if (updateOnly) {
+                document.querySelectorAll('.card').forEach(card => {
+                    card.removeEventListener('click', manejarClickTarjeta);
+                    if (tableroLogico[parseInt(card.getAttribute('data-index'))].revealed === false) {
+                        card.addEventListener('click', manejarClickTarjeta);
+                    }
+                });
+            }
         }
 
         /**
@@ -606,7 +680,9 @@
 
             if (asesinoRevelado && !victoria) {
                 juegoTerminado = true;
-                const equipoGanador = (turnoActual === TIPOS_CARTA.AZUL) ? 'Rojo 🔴' : 'Azul 🔵';
+                // El equipo perdedor es el que tenía el turno (el que reveló al Asesino)
+                const equipoPerdedor = turnoActual;
+                const equipoGanador = (equipoPerdedor === TIPOS_CARTA.AZUL) ? 'Rojo 🔴' : 'Azul 🔵';
                 mensaje = `¡JUEGO TERMINADO! <span class="text-red-500 font-bold">ASASINADO</span>. Gana: ${equipoGanador}`;
             } else if (victoria) {
                 juegoTerminado = true;
@@ -616,36 +692,39 @@
             // 3. Si el juego ha terminado, actualizar la UI
             if (juegoTerminado) {
                 document.getElementById('pass-turn-btn').disabled = true;
-
-                // Si el juego terminó por asesino, el mensaje ya está establecido.
-                // Si terminó por victoria normal, el mensaje se establece arriba.
                 document.getElementById('current-turn').innerHTML = mensaje;
 
-                // Mostrar los botones de inicio después de que el juego termine
+                limpiarEstadoPartida(); // ✨ Borrar estado guardado al terminar el juego
+
+                // Mostrar los botones de inicio después de un breve retraso
                 setTimeout(mostrarBotonesInicio, 1500);
             }
         }
 
         // =========================================================
-        // EXPOSICIÓN GLOBAL DE FUNCIONES 
+        // EXPOSICIÓN GLOBAL DE FUNCIONES 
         // =========================================================
         window.codificarTablero = codificarTablero;
-        // También exponemos el descifrado y cifrado por si lo necesitas
-        window.descifrarTablero = decodificarTablero;
         window.cifrarXOR = cifrarXOR;
         window.descifrarXOR = descifrarXOR;
+        window.cargarEstadoPartida = cargarEstadoPartida;
+
 
         // =========================================================
-        // RESTO DE FUNCIONES (DOMContentLoaded, etc.)
+        // INICIO: DOMContentLoaded
         // =========================================================
-
-
-        // 4. Inicializar la página en estado de espera y asignar manejadores de eventos.
         document.addEventListener('DOMContentLoaded', () => {
-            // Estado inicial: mostrar botones de inicio, ocultar tablero.
-            mostrarBotonesInicio();
 
-            // --- Manejadores para los nuevos botones de inicio ---
+            // ✨ 1. Intentar cargar la partida guardada
+            if (cargarEstadoPartida()) {
+                // Si la partida se cargó, la UI ya está en el estado correcto.
+                // La función cargarEstadoPartida ya llama a actualizarContadoresDeTablero que renderiza y oculta los botones.
+            } else {
+                // Si no hay partida guardada o la carga falló, mostrar el estado inicial.
+                mostrarBotonesInicio();
+            }
+
+            // --- 2. Manejadores para los botones de inicio ---
 
             // Empieza Azul
             document.getElementById('start-blue-btn').addEventListener('click', () => {
@@ -670,9 +749,10 @@
                 }
             });
 
-            // =========================================================
-            // CORRECCIÓN CLAVE: Asignación del botón de alerta aquí (una sola vez)
-            // =========================================================
+            // ✨ Manejador para el botón "Reiniciar Partida"
+            document.getElementById('reset-game-btn').addEventListener('click', reiniciarPartida);
+
+            // Manejador para el botón "Ver Clave Secreta"
             const showKeyBtn = document.getElementById('show-key-btn');
             if (showKeyBtn) {
                 // Para deshabilitar la funcionalidad del botón de alerta, 
