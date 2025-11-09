@@ -37,9 +37,18 @@ export function ocultarBotonesInicio() {
 /**
  * Actualiza los contadores de agentes en la interfaz.
  */
-export function actualizarPuntuacion(azules, rojos) {
+export function actualizarPuntuacion(azules, rojos, verdes, numTeams) {
     document.querySelector('#blue-score span').textContent = azules;
     document.querySelector('#red-score span').textContent = rojos;
+
+    const greenScoreDiv = document.getElementById('green-score');
+    
+    if (numTeams === 3) {
+        greenScoreDiv.classList.remove('hidden');
+        greenScoreDiv.querySelector('span').textContent = verdes;
+    } else {
+        greenScoreDiv.classList.add('hidden');
+    }
 }
 
 /** Actualiza el indicador del turno actual en la interfaz.
@@ -52,8 +61,17 @@ export function actualizarIndicadorTurno(turnoActual, juegoTerminado, mensajeFin
         document.getElementById('current-turn').innerHTML = mensajeFin;
         document.getElementById('pass-turn-btn').disabled = true;
     } else {
-        const color = (turnoActual === TIPOS_CARTA.AZUL) ? 'blue' : 'red';
-        const textoTurno = (turnoActual === TIPOS_CARTA.AZUL) ? 'Azul 🔵' : 'Rojo 🔴';
+let color, textoTurno;
+        if (turnoActual === TIPOS_CARTA.AZUL) {
+            color = 'blue';
+            textoTurno = 'Azul 🔵';
+        } else if (turnoActual === TIPOS_CARTA.ROJO) {
+            color = 'red';
+            textoTurno = 'Rojo 🔴';
+        } else if (turnoActual === TIPOS_CARTA.VERDE) { // NUEVO: Turno Verde
+            color = 'green';
+            textoTurno = 'Verde 🟢';
+        }
         document.getElementById('current-turn').innerHTML = `Turno: <span class="text-${color}-400">${textoTurno}</span>`;
         document.getElementById('pass-turn-btn').disabled = false;
     }
@@ -78,6 +96,7 @@ export function renderizarTablero(tableroLogico, manejarClickTarjeta, juegoTermi
             switch (card.type) {
                 case TIPOS_CARTA.ROJO: cssClass = 'bg-red-agent'; break;
                 case TIPOS_CARTA.AZUL: cssClass = 'bg-blue-agent'; break;
+                case TIPOS_CARTA.VERDE: cssClass = 'bg-green-agent'; break;
                 case TIPOS_CARTA.NEUTRAL: cssClass = 'bg-neutral-agent'; break;
                 case TIPOS_CARTA.ASESINO: cssClass = 'bg-assassin'; break;
             }
@@ -178,6 +197,14 @@ export function actualizarUIModoLider(tableroLogico) {
     // 3. Asegurar que los contadores están en 0 (visual)
     document.querySelector('#blue-score span').textContent = '0';
     document.querySelector('#red-score span').textContent = '0';
+    document.querySelector('#green-score span').textContent = '0';
+
+    const is3TeamGame = tableroLogico.some(card => card.type === TIPOS_CARTA.VERDE);
+    if (is3TeamGame) {
+        document.getElementById('green-score').classList.remove('hidden');
+    } else {
+        document.getElementById('green-score').classList.add('hidden');
+    }
 
     // 4. Renderizar el tablero
     renderizarTablero(tableroLogico, null, true); // Pasar 'null' para el click handler

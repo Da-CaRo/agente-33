@@ -9,12 +9,14 @@ export const GAME_STATE_STORAGE_KEY = 'juegoDeEspias_estadoActual';
 export const TIPOS_CARTA = {
     ROJO: 'red',
     AZUL: 'blue',
+    VERDE: 'green',
     NEUTRAL: 'neutral',
     ASESINO: 'assassin',
     // Mapeo de tipos a emojis que se muestran en la consola/alerta
     MAPEO_EMOJI: {
         'red': '🔴',
         'blue': '🔵',
+        'green': '🟢',
         'neutral': '🟡',
         'assassin': '⚫'
     },
@@ -22,6 +24,7 @@ export const TIPOS_CARTA = {
     MAPEO_CODIGO: {
         'red': 'R',
         'blue': 'B',
+        'green': 'V',
         'neutral': 'N',
         'assassin': 'A'
     },
@@ -29,6 +32,7 @@ export const TIPOS_CARTA = {
     MAPEO_INVERSO: {
         'R': 'red',
         'B': 'blue',
+        'V': 'green',
         'N': 'neutral',
         'A': 'assassin'
     }

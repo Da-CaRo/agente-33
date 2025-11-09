@@ -27,6 +27,12 @@
             color: white;
         }
 
+        /* NUEVO: Verde-600 */
+        .bg-green-agent {
+            background-color: #059669;
+            color: white;
+        }
+
         /* Azul-600 */
         .bg-neutral-agent {
             background-color: #f59e0b;
@@ -54,20 +60,20 @@
     <main class="w-full max-w-6xl">
 
         <div class="flex flex-col sm:flex-row justify-between items-center w-full mb-6">
-
-            <div id="game-info"
-                class="flex justify-between items-center w-full sm:w-auto text-xl sm:text-2xl font-semibold mb-4 sm:mb-0 space-x-4">
+            <div id="scoreboard" class="flex justify-between items-center text-xl font-mono mb-4">
                 <div id="blue-score" class="text-blue-400 bg-blue-900/50 p-2 rounded-lg whitespace-nowrap">
                     🔵 Azules: <span class="font-bold text-3xl">-</span>
-                </div>
-                <div id="current-turn" class="bg-gray-700 p-2 rounded-lg text-yellow-300 whitespace-nowrap">
-                    Esperando inicio...
                 </div>
                 <div id="red-score" class="text-red-400 bg-red-900/50 p-2 rounded-lg whitespace-nowrap">
                     🔴 Rojos: <span class="font-bold text-3xl">-</span>
                 </div>
+                <div id="green-score" class="text-green-400 bg-green-900/50 p-2 rounded-lg whitespace-nowrap">
+                    🟢 Verdes: <span class="font-bold text-3xl">-</span>
+                </div>
+                <div id="current-turn" class="bg-gray-700 p-2 rounded-lg text-yellow-300 whitespace-nowrap">
+                    Esperando inicio...
+                </div>
             </div>
-
             <div id="game-controls" class="flex space-x-4 w-full sm:w-auto justify-end">
                 <button id="share-key-btn"
                     class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-full transition duration-150 text-xl w-full sm:w-auto shadow-lg hover:shadow-xl disabled:opacity-50 hidden">
@@ -88,22 +94,47 @@
             </div>
         </div>
 
-        <div id="start-buttons"
-            class="flex flex-col sm:flex-row justify-center space-y-3 sm:space-y-0 sm:space-x-4 w-full">
-            <button id="start-blue-btn"
-                class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full transition duration-150 text-xl w-full sm:w-auto shadow-lg hover:shadow-xl">
-                🔵 Empieza AZUL (9 Agentes)
-            </button>
-            <button id="start-random-btn"
-                class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-full transition duration-150 text-xl w-full sm:w-auto shadow-lg hover:shadow-xl">
-                🎲 Empieza ALEATORIO
-            </button>
-            <button id="start-red-btn"
-                class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-full transition duration-150 text-xl w-full sm:w-auto shadow-lg hover:shadow-xl">
-                🔴 Empieza ROJO (9 Agentes)
-            </button>
-        </div>
+        <div id="start-buttons" class="flex flex-col space-y-4 items-center mb-8 hidden">
 
+            <div class="text-lg font-bold text-gray-700">MODO 2 EQUIPOS (9/8/7/1)</div>
+            <div class="flex space-x-2">
+                <button id="start-blue-btn-2"
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition duration-150">
+                    Empieza Azul 🔵
+                </button>
+                <button id="start-red-btn-2"
+                    class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded transition duration-150">
+                    Empieza Rojo 🔴
+                </button>
+                <button id="start-random-btn-2"
+                    class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded transition duration-150">
+                    Empieza Aleatorio 🎲
+                </button>
+            </div>
+
+            <div class="text-lg font-bold text-gray-700 pt-4 border-t border-gray-300 w-full text-center">MODO 3 EQUIPOS
+                (8/8/8/1)</div>
+            <div class="flex space-x-2 flex-wrap justify-center">
+                <button id="start-blue-btn-3"
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition duration-150 mb-2">
+                    Empieza Azul 🔵
+                </button>
+                <button id="start-red-btn-3"
+                    class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded transition duration-150 mb-2">
+                    Empieza Rojo 🔴
+                </button>
+                <button id="start-green-btn-3"
+                    class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded transition duration-150 mb-2">
+                    Empieza Verde 🟢
+                </button>
+                <button id="start-random-btn-3"
+                    class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded transition duration-150 mb-2">
+                    Empieza Aleatorio 🎲
+                </button>
+            </div>
+
+
+        </div>
         <div id="game-board" class="grid grid-cols-5 gap-3 sm:gap-4 md:gap-5 w-full aspect-square">
         </div>
     </main>
@@ -145,16 +176,32 @@
 
             // --- Manejadores de eventos ---
 
-            // Iniciar juego con equipo específico
-            document.getElementById('start-blue-btn').addEventListener('click', () => {
-                Game.startNewGame(TIPOS_CARTA.AZUL);
+            // Iniciar juego en MODO 2 EQUIPOS
+            document.getElementById('start-blue-btn-2').addEventListener('click', () => {
+                Game.startNewGame(TIPOS_CARTA.AZUL, 2); // 2 Equipos
             });
-            document.getElementById('start-red-btn').addEventListener('click', () => {
-                Game.startNewGame(TIPOS_CARTA.ROJO);
+            document.getElementById('start-red-btn-2').addEventListener('click', () => {
+                Game.startNewGame(TIPOS_CARTA.ROJO, 2); // 2 Equipos
             });
-            document.getElementById('start-random-btn').addEventListener('click', () => {
+            document.getElementById('start-random-btn-2').addEventListener('click', () => {
                 const randomTeam = Math.random() < 0.5 ? TIPOS_CARTA.AZUL : TIPOS_CARTA.ROJO;
-                Game.startNewGame(randomTeam);
+                Game.startNewGame(randomTeam, 2); // 2 Equipos
+            });
+
+            // NUEVOS: Iniciar juego en MODO 3 EQUIPOS
+            document.getElementById('start-blue-btn-3').addEventListener('click', () => {
+                Game.startNewGame(TIPOS_CARTA.AZUL, 3); // 3 Equipos
+            });
+            document.getElementById('start-red-btn-3').addEventListener('click', () => {
+                Game.startNewGame(TIPOS_CARTA.ROJO, 3); // 3 Equipos
+            });
+            document.getElementById('start-green-btn-3').addEventListener('click', () => {
+                Game.startNewGame(TIPOS_CARTA.VERDE, 3); // 3 Equipos
+            });
+            document.getElementById('start-random-btn-3').addEventListener('click', () => {
+                const teams = [TIPOS_CARTA.AZUL, TIPOS_CARTA.ROJO, TIPOS_CARTA.VERDE];
+                const randomTeam = teams[Math.floor(Math.random() * teams.length)];
+                Game.startNewGame(randomTeam, 3); // 3 Equipos
             });
 
             // Controles de juego

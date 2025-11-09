@@ -8,7 +8,9 @@ let tableroLogico = [];
 let juegoTerminado = false;
 let agentesRojosRestantes = 0;
 let agentesAzulesRestantes = 0;
+let agentesVerdesRestantes = 0;
 let turnoActual = TIPOS_CARTA.AZUL;
+let numeroDeEquipos = 2;
 const PALABRAS_MAPA = new Map(PALABRAS_SECRETAS.map(p => [p.id, p.palabra]));
 
 // =========================================================
@@ -33,16 +35,17 @@ function shuffleArray(array) {
 function recalcularEstado(tablero) {
     agentesRojosRestantes = tablero.filter(c => c.type === TIPOS_CARTA.ROJO && !c.revealed).length;
     agentesAzulesRestantes = tablero.filter(c => c.type === TIPOS_CARTA.AZUL && !c.revealed).length;
+    agentesVerdesRestantes = tablero.filter(c => c.type === TIPOS_CARTA.VERDE && !c.revealed).length;
 
     juegoTerminado = false;
     if (tablero.find(c => c.type === TIPOS_CARTA.ASESINO && c.revealed)) {
         juegoTerminado = true;
-    } else if (agentesAzulesRestantes === 0 || agentesRojosRestantes === 0) {
+    } else if (agentesAzulesRestantes === 0 || agentesRojosRestantes === 0 || (numeroDeEquipos === 3 && agentesVerdesRestantes === 0)) {
         juegoTerminado = true;
     }
 
     // Actualizar UI y Consola después de recalcular
-    UI.actualizarPuntuacion(agentesAzulesRestantes, agentesRojosRestantes);
+    UI.actualizarPuntuacion(agentesAzulesRestantes, agentesRojosRestantes, agentesVerdesRestantes, numeroDeEquipos);
     verificarFinJuego(); // Determinar y mostrar el mensaje final
     Storage.guardarEstadoPartida(obtenerEstadoParaGuardar());
 }
@@ -58,7 +61,8 @@ function obtenerEstadoParaGuardar() {
             r: card.revealed
         })),
         turno: turnoActual,
-        terminado: juegoTerminado
+        terminado: juegoTerminado,
+        numTeams: numeroDeEquipos
     };
 }
 
@@ -69,13 +73,35 @@ function obtenerEstadoParaGuardar() {
 /**
  * Función que encapsula toda la lógica para empezar una partida nueva.
  */
-export function startNewGame(startingTeam) {
+export function startNewGame(startingTeam, numTeams) {
 
     juegoTerminado = false;
     turnoActual = startingTeam;
+    numeroDeEquipos = numTeams;
 
-    const firstTeam = startingTeam;
-    const secondTeam = (firstTeam === TIPOS_CARTA.AZUL) ? TIPOS_CARTA.ROJO : TIPOS_CARTA.AZUL;
+    const equipos = [TIPOS_CARTA.AZUL, TIPOS_CARTA.ROJO];
+    if (numTeams === 3) equipos.push(TIPOS_CARTA.VERDE);
+
+    // 1. Determinar la distribución de cartas (9/8 para 2 equipos, 8/8/8 para 3)
+    let tipos = [];
+    if (numTeams === 2) {
+        const firstTeam = startingTeam;
+        const secondTeam = equipos.find(e => e !== firstTeam);
+        tipos = [
+            ...Array(9).fill(firstTeam),
+            ...Array(8).fill(secondTeam),
+            ...Array(7).fill(TIPOS_CARTA.NEUTRAL),
+            TIPOS_CARTA.ASESINO
+        ];
+    } else { // numTeams === 3 (8/8/8/1 y 1 Asesino)
+        tipos = [
+            ...Array(8).fill(TIPOS_CARTA.AZUL),
+            ...Array(8).fill(TIPOS_CARTA.ROJO),
+            ...Array(8).fill(TIPOS_CARTA.VERDE),
+            TIPOS_CARTA.ASESINO
+        ];
+    }
+
 
     const idsUsados = Storage.cargarIdsUsados();
     let palabrasCandidatas = PALABRAS_SECRETAS.filter(item => !idsUsados.has(item.id));
@@ -89,13 +115,6 @@ export function startNewGame(startingTeam) {
     const palabrasMezcladas = shuffleArray(palabrasCandidatas).slice(0, 25);
     const idsPartidaActual = palabrasMezcladas.map(item => item.id);
     Storage.guardarNuevosIds(idsPartidaActual);
-
-    const tipos = [
-        ...Array(9).fill(firstTeam),
-        ...Array(8).fill(secondTeam),
-        ...Array(7).fill(TIPOS_CARTA.NEUTRAL),
-        TIPOS_CARTA.ASESINO
-    ];
 
     const tiposMezclados = shuffleArray(tipos);
 
@@ -161,7 +180,19 @@ export function handleCardClick(event) {
 export function passTurn() {
     if (juegoTerminado) return;
 
-    turnoActual = (turnoActual === TIPOS_CARTA.AZUL) ? TIPOS_CARTA.ROJO : TIPOS_CARTA.AZUL;
+    let nextTurn = turnoActual;
+
+    if (numeroDeEquipos === 2) {
+        nextTurn = (turnoActual === TIPOS_CARTA.AZUL) ? TIPOS_CARTA.ROJO : TIPOS_CARTA.AZUL;
+    } else if (numeroDeEquipos === 3) {
+        // Ciclo: Azul -> Rojo -> Verde -> Azul...
+        const teams = [TIPOS_CARTA.AZUL, TIPOS_CARTA.ROJO, TIPOS_CARTA.VERDE];
+        const currentIndex = teams.indexOf(turnoActual);
+        const nextIndex = (currentIndex + 1) % teams.length;
+        nextTurn = teams[nextIndex];
+    }
+
+    turnoActual = nextTurn;
     UI.actualizarIndicadorTurno(turnoActual, juegoTerminado);
     Storage.guardarEstadoPartida(obtenerEstadoParaGuardar());
     console.log(`¡Turno cambiado! Ahora es el turno del equipo ${turnoActual.toUpperCase()}.`);
@@ -178,17 +209,31 @@ function verificarFinJuego() {
         mensaje = '¡<span class="text-blue-400 font-bold">VICTORIA AZUL</span>! 🏆';
     } else if (agentesRojosRestantes === 0) {
         mensaje = '¡<span class="text-red-400 font-bold">VICTORIA ROJA</span>! 🏆';
+    } else if (numeroDeEquipos === 3 && agentesVerdesRestantes === 0) {
+        mensaje = '¡<span class="text-green-400 font-bold">VICTORIA VERDE</span>! 🏆';
     }
 
     // 2. Verificar derrota por Asesino
     const asesinoRevelado = tableroLogico.some(card => card.type === TIPOS_CARTA.ASESINO && card.revealed);
 
-    if (asesinoRevelado && !mensaje) { // Si hay asesino y no hay victoria por conteo (el asesino siempre gana)
+    if (asesinoRevelado) {
         juegoTerminado = true;
+
         const equipoPerdedor = turnoActual;
-        const equipoGanador = (equipoPerdedor === TIPOS_CARTA.AZUL) ? 'Rojo 🔴' : 'Azul 🔵';
-        mensaje = `¡JUEGO TERMINADO! <span class="text-red-500 font-bold">ASESINADO</span>. Gana: ${equipoGanador}`;
-    } else if (mensaje) { // Si hay victoria por conteo, terminamos.
+        let equipoGanadorTexto = '';
+
+        if (numeroDeEquipos === 2) {
+            equipoGanadorTexto = (equipoPerdedor === TIPOS_CARTA.AZUL) ? 'Rojo 🔴' : 'Azul 🔵';
+        } else {
+            const equiposRestantes = [TIPOS_CARTA.AZUL, TIPOS_CARTA.ROJO, TIPOS_CARTA.VERDE]
+                .filter(e => e !== equipoPerdedor)
+                .map(e => TIPOS_CARTA.MAPEO_EMOJI[e]);
+
+            equipoGanadorTexto = `Los equipos restantes: ${equiposRestantes.join(' y ')}`;
+        }
+
+        mensaje = `¡JUEGO TERMINADO! <span class="text-red-500 font-bold">ASASINADO</span>. Ganan: ${equipoGanadorTexto}`;
+    } else if (mensaje) {
         juegoTerminado = true;
     }
 
@@ -220,6 +265,7 @@ export function initGame() {
 
         turnoActual = estadoGuardado.turno || TIPOS_CARTA.AZUL;
         juegoTerminado = estadoGuardado.terminado || false;
+        numeroDeEquipos = estadoGuardado.numTeams || 2;
 
         UI.ocultarBotonesInicio();
         recalcularEstado(tableroLogico);
@@ -290,6 +336,8 @@ export function mostrarClaveSecretaURL(cadenaCifrada) {
                 revealed: true // Todas reveladas para el Líder de Espías
             };
         });
+
+        numeroDeEquipos = tableroLogico.some(card => card.type === TIPOS_CARTA.VERDE) ? 3 : 2;
 
         UI.ocultarBotonesInicio();
         UI.actualizarUIModoLider(tableroLogico);
