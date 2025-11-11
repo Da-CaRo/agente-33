@@ -17,6 +17,7 @@ export function mostrarBotonesInicio() {
     document.getElementById('current-turn').innerHTML = 'Esperando inicio...';
     document.querySelector('#blue-score span').textContent = '-';
     document.querySelector('#red-score span').textContent = '-';
+    document.querySelector('#green-score span').textContent = '-';
 }
 
 /**
@@ -68,7 +69,7 @@ let color, textoTurno;
         } else if (turnoActual === TIPOS_CARTA.ROJO) {
             color = 'red';
             textoTurno = 'Rojo 🔴';
-        } else if (turnoActual === TIPOS_CARTA.VERDE) { // NUEVO: Turno Verde
+        } else if (turnoActual === TIPOS_CARTA.VERDE) {
             color = 'green';
             textoTurno = 'Verde 🟢';
         }
