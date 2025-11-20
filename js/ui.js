@@ -1,4 +1,4 @@
-import { TIPOS_CARTA } from './config.js';
+import { TIPOS_CARTA, MODOS_DE_JUEGO, ETIQUETAS_MODOS} from './config.js';
 
 // =========================================================
 // Funciones de Visibilidad y Estado del Tablero
@@ -280,6 +280,35 @@ export function mostrarTablero() {
  */
 export function mostrarEstadisticas() {
     document.getElementById('game-stats').classList.remove('hidden');
+}
+
+// =========================================================
+// Funciones de Configuración de Opciones
+// =========================================================
+
+/**
+ * Llena el menú desplegable de selección de modos.
+ */
+export function cargarOpcionesTema() {
+    const selectElement = document.getElementById('mode-select');
+
+    if (!selectElement) {
+        console.error('ERROR UI: No se encontró el elemento #mode-select en el DOM.');
+        return; 
+    }
+
+    selectElement.innerHTML = ''; // Limpiar opciones anteriores
+
+    // Iterar sobre las etiquetas legibles de los modos
+    for (const [key, label] of Object.entries(ETIQUETAS_MODOS)) {
+        const option = document.createElement('option');
+        option.value = key; // El valor real para game.js ('clasico', 'geografia', etc.)
+        option.textContent = label; // La etiqueta legible para el usuario
+        selectElement.appendChild(option);
+    }
+
+    // Asegúrate de que el modo CLASICO sea el seleccionado por defecto
+    selectElement.value = MODOS_DE_JUEGO.TODO;
 }
 
 /**

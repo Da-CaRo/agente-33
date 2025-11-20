@@ -38,3 +38,60 @@ export const TIPOS_CARTA = {
         'A': 'assassin'
     }
 };
+
+export const MODOS_DE_JUEGO = {
+    TODO: 'todo',
+    ORIGINAL: 'original',
+    CIENCIA: 'ciencia',
+    GEOGRAFIA: 'geografia',
+    Comida: 'Comida',
+    DEPORTE: 'deporte',
+    DEPORTESYMAS: 'deportivo',
+    PAIS: 'pais',
+    CIUDAD: 'ciudad',
+    ANIMAL: 'animal',
+    PROFESION: 'profesion'
+};
+
+export const ETIQUETAS = {
+    ORIGINAL: 'Original',
+    ANIMAL: 'Animal',
+    NATURALEZA: 'Naturaleza',
+    CIENCIA: 'Ciencia',
+    GEOGRAFIA: 'Geografía',
+    PAIS: 'País',
+    CIUDAD: 'Ciudad',
+    COMIDA: 'Comida',
+    DEPORTE: 'Deporte',
+    DEPORTESYMAS: 'Deportivo',
+    PROFESION: 'Profesión'
+};
+
+export const ETIQUETAS_MODOS = {
+    [MODOS_DE_JUEGO.TODO]: "Clásico (Todas las Palabras)",
+    [MODOS_DE_JUEGO.ORIGINAL]: "Original (Palabras del juego original)",
+    [MODOS_DE_JUEGO.CIENCIA]: "Ciencia y Naturaleza",
+    [MODOS_DE_JUEGO.GEOGRAFIA]: "Geografía",
+    [MODOS_DE_JUEGO.COMIDA]: "Comida",
+    [MODOS_DE_JUEGO.DEPORTE]: "Deportes",
+    [MODOS_DE_JUEGO.DEPORTESYMAS]: "Deportes y mas",
+    [MODOS_DE_JUEGO.PAIS]: "Paises",
+    [MODOS_DE_JUEGO.CIUDAD]: "Ciudades",
+    [MODOS_DE_JUEGO.ANIMAL]: "Animales",
+    [MODOS_DE_JUEGO.PROFESION]: "Profesiones"
+};
+
+export const MODO_A_CATEGORIAS = {
+    [MODOS_DE_JUEGO.TODO]: null,
+    [MODOS_DE_JUEGO.ORIGINAL]: [ETIQUETAS.ORIGINAL],
+    [MODOS_DE_JUEGO.CIENCIA]: [ETIQUETAS.ANIMAL, ETIQUETAS.NATURALEZA, ETIQUETAS.CIENCIA],
+    [MODOS_DE_JUEGO.GEOGRAFIA]: [ETIQUETAS.GEOGRAFIA, ETIQUETAS.PAIS, ETIQUETAS.CIUDAD],
+    [MODOS_DE_JUEGO.COMIDA]: [ETIQUETAS.COMIDA],
+    [MODOS_DE_JUEGO.DEPORTE]: [ETIQUETAS.DEPORTE],
+    [MODOS_DE_JUEGO.DEPORTESYMAS]: [ETIQUETAS.DEPORTE, ETIQUETAS.DEPORTESYMAS],
+    [MODOS_DE_JUEGO.PAIS]: [ETIQUETAS.PAIS],
+    [MODOS_DE_JUEGO.CIUDAD]: [ETIQUETAS.CIUDAD],
+    [MODOS_DE_JUEGO.ANIMAL]: [ETIQUETAS.ANIMAL],
+    [MODOS_DE_JUEGO.PROFESION]: [ETIQUETAS.PROFESION]
+};
+

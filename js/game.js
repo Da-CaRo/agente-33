@@ -1,5 +1,5 @@
 import { PALABRAS_SECRETAS } from '../data/palabras.js';
-import { TIPOS_CARTA, GAME_STATE_STORAGE_KEY } from './config.js';
+import { TIPOS_CARTA, GAME_STATE_STORAGE_KEY, MODOS_DE_JUEGO, MODO_A_CATEGORIAS, ETIQUETAS } from './config.js';
 import * as Storage from './storage.js';
 import * as UI from './ui.js';
 
@@ -75,7 +75,7 @@ function obtenerEstadoParaGuardar() {
 /**
  * Función que encapsula toda la lógica para empezar una partida nueva.
  */
-export function startNewGame(startingTeam, numTeams, rulePassOnMiss) {
+export function startNewGame(startingTeam, numTeams, rulePassOnMiss, selectedMode) {
 
     juegoTerminado = false;
     turnoActual = startingTeam;
@@ -105,13 +105,44 @@ export function startNewGame(startingTeam, numTeams, rulePassOnMiss) {
         ];
     }
 
+    // 2. FILTRAR LAS PALABRAS POR TEMA
+    let palabrasFiltradas;
+    const categoriasSeleccionadas = MODO_A_CATEGORIAS[selectedMode];
 
+    if (selectedMode === MODOS_DE_JUEGO.CLASICO || !categoriasSeleccionadas) {
+        // Modo clásico: usa TODAS las palabras que NO se han usado previamente.
+        palabrasFiltradas = PALABRAS_SECRETAS;
+    } else {
+        // Filtrar las palabras: la palabra debe incluir AL MENOS una de las categorías seleccionadas
+        palabrasFiltradas = PALABRAS_SECRETAS.filter(item => {
+            // Si la palabra no tiene 'etiquetas' o su array está vacío, la descartamos en modos temáticos
+            if (!item.etiquetas || item.etiquetas.length === 0) return false;
+
+            // Comprobar si alguno de los etiquetas de la palabra está incluido en las categorías del modo
+            return item.etiquetas.some(tema => categoriasSeleccionadas.includes(tema));
+        });
+
+        if (palabrasFiltradas.length < 25) {
+            console.error(`¡ERROR! Solo hay ${palabrasFiltradas.length} palabras disponibles para el tema ${selectedMode} (Categorías: ${categoriasSeleccionadas.join(', ')}).`);
+            return;
+        }
+    }
+
+    // 2. APLICAR LÓGICA DE PALABRAS USADAS
     const idsUsados = Storage.cargarIdsUsados();
-    let palabrasCandidatas = PALABRAS_SECRETAS.filter(item => !idsUsados.has(item.id));
+    let palabrasCandidatas = palabrasFiltradas.filter(item => !idsUsados.has(item.id));
 
-    if (palabrasCandidatas.length < 25) {
-        console.warn("¡Pocas palabras no usadas! Reiniciando la lista completa.");
-        Storage.limpiarEstadoPartida(true); // limpia palabras usadas
+    if (palabrasCandidatas.length < 25 && selectedMode !== MODOS_DE_JUEGO.CLASICO) {
+        // LÓGICA DE REINICIO DE HISTORIAL TEMÁTICO
+        console.warn(`Pocas palabras no usadas (${palabrasCandidatas.length}) para el tema ${selectedMode}. Reiniciando historial para este tema.`);
+        const idsDelTema = palabrasFiltradas.map(item => item.id);
+        Storage.limpiarIdsUsados(idsDelTema);
+        palabrasCandidatas = palabrasFiltradas;
+
+    } else if (palabrasCandidatas.length < 25 && selectedMode === MODOS_DE_JUEGO.CLASICO) {
+        // Lógica existente para el modo Clásico (usa todas las disponibles)
+        console.warn("¡Pocas palabras no usadas en modo CLÁSICO! Reiniciando la lista completa.");
+        Storage.limpiarEstadoPartida(true);
         palabrasCandidatas = PALABRAS_SECRETAS;
     }
 

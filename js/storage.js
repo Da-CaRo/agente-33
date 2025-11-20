@@ -134,6 +134,24 @@ export function guardarNuevosIds(nuevosIds) {
 // =========================================================
 
 /**
+ * Elimina IDs específicos del registro de palabras usadas.
+ * @param {number[]} idsATramitar - Array de IDs de palabras a eliminar.
+ */
+export function limpiarIdsUsados(idsATramitar) {
+    if (idsATramitar.length === 0) return;
+
+    const idsABorrarSet = new Set(idsATramitar);
+    const idsAnteriores = localStorage.getItem(USADAS_STORAGE_KEY);
+    let listaCompleta = idsAnteriores ? JSON.parse(idsAnteriores) : [];
+
+    // Filtra la lista completa, manteniendo solo los IDs que NO están en el set de IDs a borrar
+    const listaActualizada = listaCompleta.filter(item => !idsABorrarSet.has(item.id));
+
+    localStorage.setItem(USADAS_STORAGE_KEY, JSON.stringify(listaActualizada));
+    console.log(`🧹 Se han limpiado ${idsATramitar.length} IDs del historial de palabras usadas.`);
+}
+
+/**
  * Elimina todas las variables de estado del juego y palabras usadas del almacenamiento local.
  */
 export function limpiarTodasVariables() {
