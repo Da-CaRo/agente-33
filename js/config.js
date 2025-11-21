@@ -44,7 +44,7 @@ export const MODOS_DE_JUEGO = {
     ORIGINAL: 'original',
     CIENCIA: 'ciencia',
     GEOGRAFIA: 'geografia',
-    Comida: 'Comida',
+    COMIDA: 'Comida',
     DEPORTE: 'deporte',
     DEPORTESYMAS: 'deportivo',
     PAIS: 'pais',
