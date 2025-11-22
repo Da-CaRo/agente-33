@@ -40,7 +40,7 @@ export const TIPOS_CARTA = {
 };
 
 export const MODOS_DE_JUEGO = {
-    TODO: 'todo',
+    CLASICO: 'clasico',
     ORIGINAL: 'original',
     CIENCIA: 'ciencia',
     GEOGRAFIA: 'geografia',
@@ -68,7 +68,7 @@ export const ETIQUETAS = {
 };
 
 export const ETIQUETAS_MODOS = {
-    [MODOS_DE_JUEGO.TODO]: "Clásico (Todas las Palabras)",
+    [MODOS_DE_JUEGO.CLASICO]: "Clásico (Todas las Palabras)",
     [MODOS_DE_JUEGO.ORIGINAL]: "Original (Palabras del juego original)",
     [MODOS_DE_JUEGO.CIENCIA]: "Ciencia y Naturaleza",
     [MODOS_DE_JUEGO.GEOGRAFIA]: "Geografía",

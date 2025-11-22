@@ -308,7 +308,7 @@ export function cargarOpcionesTema() {
     }
 
     // Asegúrate de que el modo CLASICO sea el seleccionado por defecto
-    selectElement.value = MODOS_DE_JUEGO.TODO;
+    selectElement.value = MODOS_DE_JUEGO.CLASICO;
 }
 
 /**
