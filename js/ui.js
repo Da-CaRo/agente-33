@@ -111,7 +111,7 @@ export function renderizarTablero(tableroLogico, manejarClickTarjeta, juegoTermi
 
         const textSpan = document.createElement('span');
         textSpan.className = 'card-text font-bold uppercase text-center';
-        textSpan.textContent = card.word;
+        textSpan.innerHTML = card.word;
         cardDiv.appendChild(textSpan);
         board.appendChild(cardDiv);
 

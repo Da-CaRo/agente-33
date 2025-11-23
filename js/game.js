@@ -1,5 +1,5 @@
 import { PALABRAS_SECRETAS } from '../data/palabras.js';
-import { TIPOS_CARTA, GAME_STATE_STORAGE_KEY, MODOS_DE_JUEGO, MODO_A_CATEGORIAS, ETIQUETAS } from './config.js';
+import { TIPOS_CARTA, GAME_STATE_STORAGE_KEY, MODOS_DE_JUEGO, MODO_A_CATEGORIAS, ETIQUETAS, MODOS_DE_JUEGO_BANDERAS } from './config.js';
 import * as Storage from './storage.js';
 import * as UI from './ui.js';
 
@@ -111,7 +111,10 @@ export function startNewGame(startingTeam, numTeams, rulePassOnMiss, selectedMod
 
     if (selectedMode === MODOS_DE_JUEGO.CLASICO || !categoriasSeleccionadas) {
         // Modo clásico: usa TODAS las palabras que NO se han usado previamente.
-        palabrasFiltradas = PALABRAS_SECRETAS;
+        palabrasFiltradas = PALABRAS_SECRETAS.filter(item => {
+            // Excluir si tiene la etiqueta "Bandera". Si item.etiquetas es null/undefined, se incluye.
+            return !(item.etiquetas && item.etiquetas.includes(ETIQUETAS.BANDERAS));
+        });
     } else {
         // Filtrar las palabras: la palabra debe incluir AL MENOS una de las categorías seleccionadas
         palabrasFiltradas = PALABRAS_SECRETAS.filter(item => {
@@ -152,12 +155,32 @@ export function startNewGame(startingTeam, numTeams, rulePassOnMiss, selectedMod
 
     const tiposMezclados = shuffleArray(tipos);
 
-    tableroLogico = palabrasMezcladas.map((item, index) => ({
-        id: item.id,
-        word: item.palabra,
-        type: tiposMezclados[index],
-        revealed: false
-    }));
+    const esModoBanderas = MODOS_DE_JUEGO_BANDERAS.includes(selectedMode);
+    tableroLogico = palabrasMezcladas.map((item, index) => {
+        let textoMostrar;
+
+        if (esModoBanderas && item.img) {
+            // Opción Banderas: Insertar una etiqueta <img>
+            // Asegúrate de que la ruta sea correcta (ej. /img/banderas/VE.svg)
+            textoMostrar = /*`
+            <img src="img/flags/${item.img}" 
+                 alt="${item.palabra}" 
+                 class="flag-img emoji-fix" />`;*/
+
+            `<span class="fi fi-${item.img}" alt="${item.palabra}"></span>`;
+
+        } else {
+            // Modo Clásico o Temático normal: usar la palabra de texto
+            textoMostrar = item.palabra;
+        }
+
+        return {
+            id: item.id,
+            word: textoMostrar, // <-- USAMOS EL NUEVO TEXTO
+            type: tiposMezclados[index],
+            revealed: false
+        };
+    });
 
     Storage.limpiarEstadoPartida(); // Limpiar el estado anterior (si existe)
 
