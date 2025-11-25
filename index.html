@@ -117,7 +117,6 @@
         .fi {
             font-size: 4rem;
         }
-        
     </style>
 </head>
 
@@ -283,6 +282,11 @@
                             title="Acabar Partida">
                             🛑 Salir
                         </button>
+                        <button id="toggle-display-btn"
+                            class="py-3 px-2 bg-gray-700 hover:bg-gray-600 text-acento font-bold rounded-full transition duration-150 flex items-center justify-center text-sm disabled:opacity-50 hidden"
+                            title="Alternar entre palabras e imágenes">
+                            🖼️/🔠 Mostrar Palabras
+                        </button>
                     </div>
 
                     <button id="pass-turn-btn"
@@ -432,10 +436,9 @@
 
             // Controles de juego
             document.getElementById('pass-turn-btn').addEventListener('click', Game.passTurn);
-            document.getElementById('reset-game-btn').addEventListener('click', () => {
-                Game.reiniciarPartida();
-            });
+            document.getElementById('reset-game-btn').addEventListener('click', Game.reiniciarPartida);
             document.getElementById('share-key-btn').addEventListener('click', Game.generarEnlaceClave);
+            document.getElementById('toggle-display-btn').addEventListener('click', Game.reRenderBoard);
 
             // Ver clave secreta (usa el tablero lógico del motor del juego)
             document.getElementById('show-key-btn').addEventListener('click', () => {

@@ -1,8 +1,10 @@
-import { TIPOS_CARTA, MODOS_DE_JUEGO, ETIQUETAS_MODOS} from './config.js';
+import { TIPOS_CARTA, MODOS_DE_JUEGO, ETIQUETAS_MODOS } from './config.js';
 
 // =========================================================
 // Funciones de Visibilidad y Estado del Tablero
 // =========================================================
+
+export let mostrarImagenes = false;
 
 /**
  * Muestra los botones de inicio y oculta los controles del juego.
@@ -13,6 +15,7 @@ export function mostrarBotonesInicio() {
     document.getElementById('show-key-btn').classList.add('hidden');
     document.getElementById('reset-game-btn').classList.add('hidden');
     document.getElementById('share-key-btn').classList.add('hidden');
+    document.getElementById('toggle-display-btn').classList.add('hidden');
     document.getElementById('game-board').innerHTML = '<div class="text-center text-gray-400 text-3xl p-10 col-span-5">Selecciona el equipo que empieza para comenzar una nueva partida.</div>';
     document.getElementById('current-turn').innerHTML = 'Esperando inicio...';
     document.querySelector('#blue-score span').textContent = '-';
@@ -29,6 +32,7 @@ export function ocultarBotonesInicio() {
     document.getElementById('show-key-btn').classList.remove('hidden');
     document.getElementById('reset-game-btn').classList.remove('hidden');
     document.getElementById('share-key-btn').classList.remove('hidden');
+    document.getElementById('toggle-display-btn').classList.remove('hidden');
 }
 
 // =========================================================
@@ -82,8 +86,9 @@ export function actualizarIndicadorTurno(turnoActual, juegoTerminado, mensajeFin
  * @param {Array} tableroLogico - El tablero lógico con las cartas y sus estados.
  * @param {Function} manejarClickTarjeta - Función para manejar el clic en una tarjeta.
  * @param {boolean} juegoTerminado - Indica si el juego ha terminado.
+ * @param {boolean} forzarPalabras - Si es true, siempre muestra palabras (útil para el modo Líder de Espías).
  */
-export function renderizarTablero(tableroLogico, manejarClickTarjeta, juegoTerminado) {
+export function renderizarTablero(tableroLogico, manejarClickTarjeta, juegoTerminado, forzarPalabras = false) {
     const board = document.getElementById('game-board');
     board.innerHTML = ''; // Limpiamos el tablero
 
@@ -109,16 +114,49 @@ export function renderizarTablero(tableroLogico, manejarClickTarjeta, juegoTermi
             }
         }
 
+        // Lógica para alternar entre imagen y palabra
+        const shouldShowImage = mostrarImagenes && card.img && !forzarPalabras;
+        let cardContent;
+
+        if (shouldShowImage) {
+            cardContent = `<span class="fi fi-${card.img}" alt="${card.word}"></span>`;;
+        } else {
+            cardContent = card.word
+        }
+
         const textSpan = document.createElement('span');
         textSpan.className = 'card-text font-bold uppercase text-center';
-        textSpan.innerHTML = card.word;
+        textSpan.innerHTML = cardContent;
         cardDiv.appendChild(textSpan);
+
         board.appendChild(cardDiv);
 
         if (juegoTerminado) {
             cardDiv.removeEventListener('click', manejarClickTarjeta);
         }
     });
+}
+
+/**
+ * Actualiza el texto y el icono del botón de alternancia.
+ */
+export function actualizarTextoToggleBtn() {
+    const toggleBtn = document.getElementById('toggle-display-btn');
+    if (toggleBtn) {
+        if (toggleBtn.disabled) {
+            toggleBtn.innerHTML = '🔠 Sin imágenes';
+            toggleBtn.title = 'El modo de juego actual no admite imágenes';
+            return;
+        }
+        if (mostrarImagenes) {
+            toggleBtn.innerHTML = '🔠 Mostrar Palabras';
+            toggleBtn.title = 'Cambiar a Palabras';
+        } else {
+            toggleBtn.innerHTML = '🖼️ Mostrar Imágenes';
+            toggleBtn.title = 'Cambiar a Imágenes';
+        }
+    }
+    mostrarImagenes = !mostrarImagenes;
 }
 
 // =========================================================
@@ -151,19 +189,6 @@ export function mostrarClaveEnConsola(tableroLogico) {
  * Muestra la clave secreta en una alerta para el líder de espías.
  * @param {Array} tableroLogico - El tablero lógico con las cartas y sus tipos.
  */
-/*
-export function mostrarClaveEnAlerta(tableroLogico) {
-    if (!tableroLogico || tableroLogico.length !== 25) return;
-
-    let claveAlerta = "CLAVE SECRETA (LÍDER DE ESPÍAS):\n\n";
-    for (let i = 0; i < 25; i++) {
-        claveAlerta += TIPOS_CARTA.MAPEO_EMOJI[tableroLogico[i].type];
-        if ((i + 1) % 5 === 0) {
-            claveAlerta += "\n";
-        }
-    }
-    alert(claveAlerta);
-}*/
 export function mostrarClaveEnAlerta(tableroLogico) {
     let claveAlerta = "CLAVE SECRETA\n(LÍDER DE ESPÍAS):\n\n";
     for (let i = 0; i < 25; i++) {
@@ -208,7 +233,7 @@ export function mostrarQR(url) {
     document.getElementById('clave-code').classList.add('hidden'); // OCULTA el texto de la clave
     document.getElementById('qr-canvas').classList.remove('hidden'); // MUESTRA el canvas del QR
     document.getElementById('qr-instructions').classList.remove('hidden');
-    
+
     qrModal.classList.remove('hidden');
 }
 
@@ -244,7 +269,7 @@ export function actualizarUIModoLider(tableroLogico) {
     }
 
     // 4. Renderizar el tablero
-    renderizarTablero(tableroLogico, null, true); // Pasar 'null' para el click handler
+    renderizarTablero(tableroLogico, null, true, true); // Pasar 'null' para el click handler
 
     // 5. Mostrar la clave en consola
     mostrarClaveEnConsola(tableroLogico);
@@ -294,7 +319,7 @@ export function cargarOpcionesTema() {
 
     if (!selectElement) {
         console.error('ERROR UI: No se encontró el elemento #mode-select en el DOM.');
-        return; 
+        return;
     }
 
     selectElement.innerHTML = ''; // Limpiar opciones anteriores

@@ -13,6 +13,7 @@ let turnoActual = TIPOS_CARTA.AZUL;
 let numeroDeEquipos = 2;
 let paseTurnoAlFallar = true;
 const PALABRAS_MAPA = new Map(PALABRAS_SECRETAS.map(p => [p.id, p.palabra]));
+const IMAGENES_MAPA = new Map(PALABRAS_SECRETAS.map(p => [p.id, p.img]));
 
 // =========================================================
 // Funciones Internas de Utilidad
@@ -155,30 +156,13 @@ export function startNewGame(startingTeam, numTeams, rulePassOnMiss, selectedMod
 
     const tiposMezclados = shuffleArray(tipos);
 
-    const esModoBanderas = MODOS_DE_JUEGO_BANDERAS.includes(selectedMode);
     tableroLogico = palabrasMezcladas.map((item, index) => {
-        let textoMostrar;
-
-        if (esModoBanderas && item.img) {
-            // Opción Banderas: Insertar una etiqueta <img>
-            // Asegúrate de que la ruta sea correcta (ej. /img/banderas/VE.svg)
-            textoMostrar = /*`
-            <img src="img/flags/${item.img}" 
-                 alt="${item.palabra}" 
-                 class="flag-img emoji-fix" />`;*/
-
-            `<span class="fi fi-${item.img}" alt="${item.palabra}"></span>`;
-
-        } else {
-            // Modo Clásico o Temático normal: usar la palabra de texto
-            textoMostrar = item.palabra;
-        }
-
         return {
             id: item.id,
-            word: textoMostrar, // <-- USAMOS EL NUEVO TEXTO
+            word: item.palabra,
             type: tiposMezclados[index],
-            revealed: false
+            revealed: false,
+            img: item.img || null
         };
     });
 
@@ -319,7 +303,8 @@ export function initGame() {
             id: item.id,
             word: PALABRAS_MAPA.get(item.id),
             type: TIPOS_CARTA.MAPEO_INVERSO[item.type],
-            revealed: item.r || false
+            revealed: item.r || false,
+            img: IMAGENES_MAPA.get(item.id),
         }));
 
         turnoActual = estadoGuardado.turno || TIPOS_CARTA.AZUL;
@@ -359,11 +344,11 @@ export function generarEnlaceClave() {
         const urlToShare = `${urlBase}?clave=${encodeURIComponent(estadoCifrado)}`;
 
         // Opción 1 (Predeterminada): Mostrar Código QR
-        UI.mostrarQR(urlToShare);
+        //UI.mostrarQR(urlToShare);
 
 
         // Opción 2: Usar el viejo 'prompt' (Descomentar esta línea y comentar la línea 1)
-        //prompt("Copia y comparte este enlace con el Líder de Espías:", urlToShare);
+        prompt("Copia y comparte este enlace con el Líder de Espías:", urlToShare);
     } else {
         alert("La partida no ha comenzado o es inválida.");
     }
@@ -391,11 +376,13 @@ export function mostrarClaveSecretaURL(cadenaCifrada) {
         tableroLogico = estadoDecodificado.map(item => {
             const word = PALABRAS_MAPA.get(item.id);
             const type = TIPOS_CARTA.MAPEO_INVERSO[item.type];
+            const img = IMAGENES_MAPA.get(item.id);
             return {
                 id: item.id,
                 word: word,
                 type: type,
-                revealed: true // Todas reveladas para el Líder de Espías
+                revealed: true, // Todas reveladas para el Líder de Espías
+                img: img
             };
         });
 
@@ -420,6 +407,20 @@ export function obtenerEstadoCodificadoURL() {
     return urlParams.get('clave'); // Busca el parámetro ?clave=...
 }
 
+/**
+ * Vuelve a renderizar el tablero con el estado actual, útil para el toggle de visualización.
+ */
+export function reRenderBoard() {
+    // Si el juego está en modo líder de espías, forzar el modo de líder (que a su vez llama a renderizarTablero)
+    // Se utiliza el indicador de texto de UI.actualizarUIModoLider para la detección.
+    UI.actualizarTextoToggleBtn()
+    if (document.getElementById('current-turn').innerHTML.includes('MODO LÍDER DE ESPÍAS')) {
+        UI.actualizarUIModoLider(tableroLogico);
+    } else {
+        UI.renderizarTablero(tableroLogico, handleCardClick, juegoTerminado);
+    }
+}
+
 // =========================================================
 // Funciones de Acceso a UI (Exportadas)
 // =========================================================
@@ -430,3 +431,4 @@ export function obtenerEstadoCodificadoURL() {
 export function getTableroLogico() {
     return tableroLogico;
 }
+
