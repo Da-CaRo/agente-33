@@ -1,10 +1,10 @@
 // CLAVE SECRETA DE CIFRADO
-export const ENCRYPTION_KEY = "AGENT33";
+export const ENCRYPTION_KEY = 'AGENT33';
 
 // Constantes de almacenamiento local
-export const USADAS_STORAGE_KEY = 'juegoDeEspias_palabrasUsadas';
-export const GAME_STATE_STORAGE_KEY = 'juegoDeEspias_estadoActual';
-export const RULE_TURN_PASS_KEY = 'juegoDeEspias_reglaPaseTurno';
+export const USADAS_STORAGE_KEY = 'agente33_palabrasUsadas';
+export const GAME_STATE_STORAGE_KEY = 'agente33_estadoActual';
+export const RULE_TURN_PASS_KEY = 'agente33_reglaPaseTurno';
 
 // Mapeo de tipos de cartas y códigos de codificación
 export const TIPOS_CARTA = {
@@ -25,7 +25,7 @@ export const TIPOS_CARTA = {
     MAPEO_CODIGO: {
         'red': 'R',
         'blue': 'B',
-        'green': 'V',
+        'green': 'G',
         'neutral': 'N',
         'assassin': 'A'
     },
@@ -33,7 +33,7 @@ export const TIPOS_CARTA = {
     MAPEO_INVERSO: {
         'R': 'red',
         'B': 'blue',
-        'V': 'green',
+        'G': 'green',
         'N': 'neutral',
         'A': 'assassin'
     }
@@ -87,26 +87,30 @@ export const ETIQUETAS = {
 };
 
 export const ETIQUETAS_MODOS = {
-    [MODOS_DE_JUEGO.CLASICO]: "Clásico (Todas las Palabras)",
-    [MODOS_DE_JUEGO.ORIGINAL]: "Original (Palabras del juego original)",
-    [MODOS_DE_JUEGO.CIENCIA]: "Ciencia y Naturaleza",
-    [MODOS_DE_JUEGO.GEOGRAFIA]: "Geografía",
-    [MODOS_DE_JUEGO.COMIDA]: "Comida",
-    [MODOS_DE_JUEGO.DEPORTE]: "Deportes",
-    [MODOS_DE_JUEGO.DEPORTESYMAS]: "Deportes y mas",
-    [MODOS_DE_JUEGO.PAIS]: "Paises",
-    [MODOS_DE_JUEGO.CIUDAD]: "Ciudades",
-    [MODOS_DE_JUEGO.ANIMAL]: "Animales",
-    [MODOS_DE_JUEGO.PROFESION]: "Profesiones",
-    [MODOS_DE_JUEGO.BANDERAS]: "Banderas",
-    [MODOS_DE_JUEGO.BANDERAS_FACIL]: 'Banderas Modo Fácil',
-    [MODOS_DE_JUEGO.BANDERAS_MEDIO]: 'Banderas Modo Medio',
-    [MODOS_DE_JUEGO.BANDERAS_DIFICIL]: 'Banderas Modo Dificil',
-    [MODOS_DE_JUEGO.BANDERAS_AFRICA]: 'Banderas de África',
-    [MODOS_DE_JUEGO.BANDERAS_AMERICA]: 'Banderas de América',
-    [MODOS_DE_JUEGO.BANDERAS_ASIA]: 'Banderas de Asia',
-    [MODOS_DE_JUEGO.BANDERAS_EUROPA]: 'Banderas de Europa',
-    [MODOS_DE_JUEGO.BANDERAS_OCEANIA]: 'Banderas de Oceanía',
+    // MODOS BASE
+    [MODOS_DE_JUEGO.CLASICO]: 'Archivo Maestro',
+    [MODOS_DE_JUEGO.ORIGINAL]: 'Protocolo Estándar',
+
+    // MODOS TEMÁTICOS (PALABRAS)
+    [MODOS_DE_JUEGO.CIENCIA]: 'Expediente Bioma',
+    [MODOS_DE_JUEGO.GEOGRAFIA]: 'Coordenadas Críticas',
+    [MODOS_DE_JUEGO.COMIDA]: 'Menú Clandestino',
+    [MODOS_DE_JUEGO.DEPORTE]: 'Informe de Pista',
+    [MODOS_DE_JUEGO.DEPORTESYMAS]: 'Informe de Pista Extendido',
+    [MODOS_DE_JUEGO.PAIS]: 'Objetivos Nacionales',
+    [MODOS_DE_JUEGO.CIUDAD]: 'Puntos Calientes Urbanos',
+    [MODOS_DE_JUEGO.ANIMAL]: 'Fauna Encubierta',
+    [MODOS_DE_JUEGO.PROFESION]: 'Cuerpo de Agentes',
+
+    // MODOS BANDERAS
+    [MODOS_DE_JUEGO.BANDERAS_FACIL]: 'Operación Bandera - I',
+    [MODOS_DE_JUEGO.BANDERAS_MEDIO]: 'Operación Bandera - II',
+    [MODOS_DE_JUEGO.BANDERAS]: 'Operación Bandera - III',
+    [MODOS_DE_JUEGO.BANDERAS_AFRICA]: 'Misión: Sector África',
+    [MODOS_DE_JUEGO.BANDERAS_AMERICA]: 'Misión: Sector América',
+    [MODOS_DE_JUEGO.BANDERAS_ASIA]: 'Misión: Sector Asia',
+    [MODOS_DE_JUEGO.BANDERAS_EUROPA]: 'Misión: Sector Europa',
+    [MODOS_DE_JUEGO.BANDERAS_OCEANIA]: 'Misión: Sector Oceanía',
 };
 
 export const MODO_A_CATEGORIAS = {
@@ -121,10 +125,9 @@ export const MODO_A_CATEGORIAS = {
     [MODOS_DE_JUEGO.CIUDAD]: [ETIQUETAS.CIUDAD],
     [MODOS_DE_JUEGO.ANIMAL]: [ETIQUETAS.ANIMAL],
     [MODOS_DE_JUEGO.PROFESION]: [ETIQUETAS.PROFESION],
-    [MODOS_DE_JUEGO.BANDERAS]: [ETIQUETAS.BANDERAS, ETIQUETAS.PAIS],
     [MODOS_DE_JUEGO.BANDERAS_FACIL]: [ETIQUETAS.BANDERAS_FACIL],
     [MODOS_DE_JUEGO.BANDERAS_MEDIO]: [ETIQUETAS.BANDERAS_FACIL, ETIQUETAS.BANDERAS_MEDIO],
-    [MODOS_DE_JUEGO.BANDERAS_DIFICIL]: [ETIQUETAS.BANDERAS_FACIL, ETIQUETAS.BANDERAS_MEDIO, ETIQUETAS.BANDERAS_DIFICIL],
+    [MODOS_DE_JUEGO.BANDERAS]: [ETIQUETAS.BANDERAS, ETIQUETAS.PAIS],
     [MODOS_DE_JUEGO.BANDERAS_AFRICA]: [ETIQUETAS.BANDERAS_AFRICA],
     [MODOS_DE_JUEGO.BANDERAS_AMERICA]: [ETIQUETAS.BANDERAS_AMERICANORTE, ETIQUETAS.BANDERAS_AMERICASUR],
     [MODOS_DE_JUEGO.BANDERAS_ASIA]: [ETIQUETAS.BANDERAS_ASIA],
@@ -133,10 +136,9 @@ export const MODO_A_CATEGORIAS = {
 };
 
 export const MODOS_DE_JUEGO_BANDERAS = [
-    MODOS_DE_JUEGO.BANDERAS,
     MODOS_DE_JUEGO.BANDERAS_FACIL,
     MODOS_DE_JUEGO.BANDERAS_MEDIO,
-    MODOS_DE_JUEGO.BANDERAS_DIFICIL,
+    MODOS_DE_JUEGO.BANDERAS,
     MODOS_DE_JUEGO.BANDERAS_AFRICA,
     MODOS_DE_JUEGO.BANDERAS_AMERICA,
     MODOS_DE_JUEGO.BANDERAS_ASIA,
