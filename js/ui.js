@@ -1,10 +1,23 @@
-import { TIPOS_CARTA, MODOS_DE_JUEGO, ETIQUETAS_MODOS } from './config.js';
+import { TIPOS_CARTA, MODOS_DE_JUEGO, ETIQUETAS_MODOS, MODOS_DE_JUEGO_BANDERAS } from './config.js';
 
 // =========================================================
 // Funciones de Visibilidad y Estado del Tablero
 // =========================================================
 
 export let mostrarImagenes = false;
+
+/**
+ * Establece el estado inicial de visualización (imágenes vs. palabras) basado en el modo de juego.
+ * Si el modo es de banderas, fuerza 'mostrarImagenes' a true.
+ * @param {string} mode - El modo de juego seleccionado.
+ */
+export function setInitialDisplayMode(mode) {
+    if (MODOS_DE_JUEGO_BANDERAS.includes(mode)) {
+        mostrarImagenes = true;
+    } else {
+        mostrarImagenes = false;
+    }
+}
 
 /**
  * Muestra los botones de inicio y oculta los controles del juego.
@@ -119,7 +132,13 @@ export function renderizarTablero(tableroLogico, manejarClickTarjeta, juegoTermi
         let cardContent;
 
         if (shouldShowImage) {
-            cardContent = `<span class="fi fi-${card.img}" alt="${card.word}"></span>`;;
+            if (card.img.startsWith('img/')) {
+                cardContent = `<img src="${card.img}" class="h-16"></img>`
+            } else {
+                cardContent = `<span class="fi fi-${card.img}" alt="${card.word}"></span>`;;
+
+            }
+
         } else {
             cardContent = card.word
         }
@@ -135,6 +154,8 @@ export function renderizarTablero(tableroLogico, manejarClickTarjeta, juegoTermi
             cardDiv.removeEventListener('click', manejarClickTarjeta);
         }
     });
+
+    actualizarTextoToggleBtn();
 }
 
 /**
@@ -170,7 +191,7 @@ export function actualizarTextoToggleBtn() {
 export function mostrarClaveEnConsola(tableroLogico) {
     if (!tableroLogico || tableroLogico.length !== 25) return;
 
-    console.log("\n--- CLAVE SECRETA (PARA EL LÍDER DE ESPÍAS) ---");
+    console.log("--- CLAVE SECRETA (PARA EL LÍDER DE ESPÍAS) ---");
     console.log("-----------------------------------------------");
 
     let claveConsola = "";
@@ -245,6 +266,7 @@ export function actualizarUIModoLider(tableroLogico) {
     document.getElementById('pass-turn-btn').classList.add('hidden');
     document.getElementById('reset-game-btn').classList.add('hidden');
     document.getElementById('show-key-btn').classList.add('hidden');
+    document.getElementById('share-key-btn').classList.add('hidden');
 
     // 2. Actualizar el indicador de turno
     document.getElementById('current-turn').innerHTML = '🚨 <span class="text-purple-400 font-bold">MODO LÍDER DE ESPÍAS</span> 🚨';
@@ -269,7 +291,7 @@ export function actualizarUIModoLider(tableroLogico) {
     }
 
     // 4. Renderizar el tablero
-    renderizarTablero(tableroLogico, null, true, true); // Pasar 'null' para el click handler
+    renderizarTablero(tableroLogico, null, true); // Pasar 'null' para el click handler
 
     // 5. Mostrar la clave en consola
     mostrarClaveEnConsola(tableroLogico);
@@ -305,6 +327,22 @@ export function mostrarTablero() {
  */
 export function mostrarEstadisticas() {
     document.getElementById('game-stats').classList.remove('hidden');
+}
+
+/**
+ * Controla si el botón de alternancia (imágenes/palabras) debe ser visible.
+ * Se muestra solo si el modo actual es uno de los modos de bandera.
+ * @param {string} mode - El modo de juego seleccionado.
+ */
+export function actualizarVisibilidadToggleBtn(mode) {
+    const toggleBtn = document.getElementById('toggle-display-btn');
+    if (toggleBtn) {
+        if (MODOS_DE_JUEGO_BANDERAS.includes(mode)) {
+            toggleBtn.classList.remove('hidden'); // Mostrar si es un modo de banderas
+        } else {
+            toggleBtn.classList.add('hidden'); // Ocultar si no lo es
+        }
+    }
 }
 
 // =========================================================

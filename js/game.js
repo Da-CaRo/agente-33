@@ -12,6 +12,7 @@ let agentesVerdesRestantes = 0;
 let turnoActual = TIPOS_CARTA.AZUL;
 let numeroDeEquipos = 2;
 let paseTurnoAlFallar = true;
+let selectedMode = MODOS_DE_JUEGO.CLASICO;
 const PALABRAS_MAPA = new Map(PALABRAS_SECRETAS.map(p => [p.id, p.palabra]));
 const IMAGENES_MAPA = new Map(PALABRAS_SECRETAS.map(p => [p.id, p.img]));
 
@@ -65,7 +66,8 @@ function obtenerEstadoParaGuardar() {
         turno: turnoActual,
         terminado: juegoTerminado,
         numTeams: numeroDeEquipos,
-        turnPassRule: paseTurnoAlFallar
+        turnPassRule: paseTurnoAlFallar,
+        selectedMode: selectedMode
     };
 }
 
@@ -76,12 +78,13 @@ function obtenerEstadoParaGuardar() {
 /**
  * Función que encapsula toda la lógica para empezar una partida nueva.
  */
-export function startNewGame(startingTeam, numTeams, rulePassOnMiss, selectedMode) {
+export function startNewGame(startingTeam, numTeams, rulePassOnMiss, mode) {
 
     juegoTerminado = false;
     turnoActual = startingTeam;
     numeroDeEquipos = numTeams;
     paseTurnoAlFallar = rulePassOnMiss;
+    selectedMode = mode;
 
     const equipos = [TIPOS_CARTA.AZUL, TIPOS_CARTA.ROJO];
     if (numTeams === 3) equipos.push(TIPOS_CARTA.VERDE);
@@ -171,6 +174,8 @@ export function startNewGame(startingTeam, numTeams, rulePassOnMiss, selectedMod
     UI.ocultarBotonesInicio();
     recalcularEstado(tableroLogico); // <--- Esto guarda el estado
     UI.actualizarIndicadorTurno(turnoActual, juegoTerminado);
+    UI.actualizarVisibilidadToggleBtn(selectedMode);
+    UI.setInitialDisplayMode(selectedMode);
     UI.renderizarTablero(tableroLogico, handleCardClick, juegoTerminado);
     UI.mostrarClaveEnConsola(tableroLogico);
 }
@@ -311,10 +316,13 @@ export function initGame() {
         juegoTerminado = estadoGuardado.terminado || false;
         numeroDeEquipos = estadoGuardado.numTeams || 2;
         paseTurnoAlFallar = estadoGuardado.turnPassRule !== undefined ? estadoGuardado.turnPassRule : true;
+        selectedMode = estadoGuardado.selectedMode || MODOS_DE_JUEGO.CLASICO;
 
         UI.ocultarBotonesInicio();
         recalcularEstado(tableroLogico);
         UI.actualizarIndicadorTurno(turnoActual, juegoTerminado);
+        UI.actualizarVisibilidadToggleBtn(selectedMode);
+        UI.setInitialDisplayMode(selectedMode);
         UI.renderizarTablero(tableroLogico, handleCardClick, juegoTerminado);
         UI.mostrarClaveEnConsola(tableroLogico);
         return true;
@@ -391,6 +399,7 @@ export function mostrarClaveSecretaURL(cadenaCifrada) {
 
         UI.ocultarBotonesInicio();
         UI.actualizarUIModoLider(tableroLogico);
+        UI.actualizarVisibilidadToggleBtn(estadoPartida.selectedMode);
 
     } catch (e) {
         console.error("Error al procesar el JSON del tablero descifrado para la clave:", e);
@@ -413,7 +422,6 @@ export function obtenerEstadoCodificadoURL() {
 export function reRenderBoard() {
     // Si el juego está en modo líder de espías, forzar el modo de líder (que a su vez llama a renderizarTablero)
     // Se utiliza el indicador de texto de UI.actualizarUIModoLider para la detección.
-    UI.actualizarTextoToggleBtn()
     if (document.getElementById('current-turn').innerHTML.includes('MODO LÍDER DE ESPÍAS')) {
         UI.actualizarUIModoLider(tableroLogico);
     } else {
