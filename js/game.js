@@ -12,7 +12,7 @@ let agentesVerdesRestantes = 0;
 let turnoActual = TIPOS_CARTA.AZUL;
 let numeroDeEquipos = 2;
 let paseTurnoAlFallar = true;
-let selectedMode = MODOS_DE_JUEGO.CLASICO;
+let selectedMode = MODOS_DE_JUEGO.ORIGINAL;
 const PALABRAS_MAPA = new Map(PALABRAS_SECRETAS.map(p => [p.id, p.palabra]));
 const IMAGENES_MAPA = new Map(PALABRAS_SECRETAS.map(p => [p.id, p.img]));
 
@@ -316,7 +316,7 @@ export function initGame() {
         juegoTerminado = estadoGuardado.terminado || false;
         numeroDeEquipos = estadoGuardado.numTeams || 2;
         paseTurnoAlFallar = estadoGuardado.turnPassRule !== undefined ? estadoGuardado.turnPassRule : true;
-        selectedMode = estadoGuardado.selectedMode || MODOS_DE_JUEGO.CLASICO;
+        selectedMode = estadoGuardado.selectedMode || MODOS_DE_JUEGO.ORIGINAL;
 
         UI.ocultarBotonesInicio();
         recalcularEstado(tableroLogico);
