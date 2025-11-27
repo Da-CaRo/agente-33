@@ -352,11 +352,11 @@ export function generarEnlaceClave() {
         const urlToShare = `${urlBase}?clave=${encodeURIComponent(estadoCifrado)}`;
 
         // Opción 1 (Predeterminada): Mostrar Código QR
-        //UI.mostrarQR(urlToShare);
+        UI.mostrarQR(urlToShare);
 
 
         // Opción 2: Usar el viejo 'prompt' (Descomentar esta línea y comentar la línea 1)
-        prompt("Copia y comparte este enlace con el Líder de Espías:", urlToShare);
+        //prompt("Copia y comparte este enlace con el Líder de Espías:", urlToShare);
     } else {
         alert("La partida no ha comenzado o es inválida.");
     }
