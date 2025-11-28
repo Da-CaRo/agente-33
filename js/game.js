@@ -1,5 +1,5 @@
 import { PALABRAS_SECRETAS } from '../data/palabras.js';
-import { TIPOS_CARTA, GAME_STATE_STORAGE_KEY } from './config.js';
+import { TIPOS_CARTA, GAME_STATE_STORAGE_KEY, MODOS_DE_JUEGO, MODO_A_CATEGORIAS, ETIQUETAS, MODOS_DE_JUEGO_BANDERAS } from './config.js';
 import * as Storage from './storage.js';
 import * as UI from './ui.js';
 
@@ -12,7 +12,9 @@ let agentesVerdesRestantes = 0;
 let turnoActual = TIPOS_CARTA.AZUL;
 let numeroDeEquipos = 2;
 let paseTurnoAlFallar = true;
+let selectedMode = MODOS_DE_JUEGO.ORIGINAL;
 const PALABRAS_MAPA = new Map(PALABRAS_SECRETAS.map(p => [p.id, p.palabra]));
+const IMAGENES_MAPA = new Map(PALABRAS_SECRETAS.map(p => [p.id, p.img]));
 
 // =========================================================
 // Funciones Internas de Utilidad
@@ -64,7 +66,8 @@ function obtenerEstadoParaGuardar() {
         turno: turnoActual,
         terminado: juegoTerminado,
         numTeams: numeroDeEquipos,
-        turnPassRule: paseTurnoAlFallar
+        turnPassRule: paseTurnoAlFallar,
+        selectedMode: selectedMode
     };
 }
 
@@ -75,12 +78,13 @@ function obtenerEstadoParaGuardar() {
 /**
  * Función que encapsula toda la lógica para empezar una partida nueva.
  */
-export function startNewGame(startingTeam, numTeams, rulePassOnMiss) {
+export function startNewGame(startingTeam, numTeams, rulePassOnMiss, mode) {
 
     juegoTerminado = false;
     turnoActual = startingTeam;
     numeroDeEquipos = numTeams;
     paseTurnoAlFallar = rulePassOnMiss;
+    selectedMode = mode;
 
     const equipos = [TIPOS_CARTA.AZUL, TIPOS_CARTA.ROJO];
     if (numTeams === 3) equipos.push(TIPOS_CARTA.VERDE);
@@ -105,13 +109,47 @@ export function startNewGame(startingTeam, numTeams, rulePassOnMiss) {
         ];
     }
 
+    // 2. FILTRAR LAS PALABRAS POR TEMA
+    let palabrasFiltradas;
+    const categoriasSeleccionadas = MODO_A_CATEGORIAS[selectedMode];
 
+    if (selectedMode === MODOS_DE_JUEGO.CLASICO || !categoriasSeleccionadas) {
+        // Modo clásico: usa TODAS las palabras que NO se han usado previamente.
+        palabrasFiltradas = PALABRAS_SECRETAS.filter(item => {
+            // Excluir si tiene la etiqueta "Bandera". Si item.etiquetas es null/undefined, se incluye.
+            return !(item.etiquetas && item.etiquetas.includes(ETIQUETAS.BANDERAS));
+        });
+    } else {
+        // Filtrar las palabras: la palabra debe incluir AL MENOS una de las categorías seleccionadas
+        palabrasFiltradas = PALABRAS_SECRETAS.filter(item => {
+            // Si la palabra no tiene 'etiquetas' o su array está vacío, la descartamos en modos temáticos
+            if (!item.etiquetas || item.etiquetas.length === 0) return false;
+
+            // Comprobar si alguno de los etiquetas de la palabra está incluido en las categorías del modo
+            return item.etiquetas.some(tema => categoriasSeleccionadas.includes(tema));
+        });
+
+        if (palabrasFiltradas.length < 25) {
+            console.error(`¡ERROR! Solo hay ${palabrasFiltradas.length} palabras disponibles para el tema ${selectedMode} (Categorías: ${categoriasSeleccionadas.join(', ')}).`);
+            return;
+        }
+    }
+
+    // 2. APLICAR LÓGICA DE PALABRAS USADAS
     const idsUsados = Storage.cargarIdsUsados();
-    let palabrasCandidatas = PALABRAS_SECRETAS.filter(item => !idsUsados.has(item.id));
+    let palabrasCandidatas = palabrasFiltradas.filter(item => !idsUsados.has(item.id));
 
-    if (palabrasCandidatas.length < 25) {
-        console.warn("¡Pocas palabras no usadas! Reiniciando la lista completa.");
-        Storage.limpiarEstadoPartida(true); // limpia palabras usadas
+    if (palabrasCandidatas.length < 25 && selectedMode !== MODOS_DE_JUEGO.CLASICO) {
+        // LÓGICA DE REINICIO DE HISTORIAL TEMÁTICO
+        console.warn(`Pocas palabras no usadas (${palabrasCandidatas.length}) para el tema ${selectedMode}. Reiniciando historial para este tema.`);
+        const idsDelTema = palabrasFiltradas.map(item => item.id);
+        Storage.limpiarIdsUsados(idsDelTema);
+        palabrasCandidatas = palabrasFiltradas;
+
+    } else if (palabrasCandidatas.length < 25 && selectedMode === MODOS_DE_JUEGO.CLASICO) {
+        // Lógica existente para el modo Clásico (usa todas las disponibles)
+        console.warn("¡Pocas palabras no usadas en modo CLÁSICO! Reiniciando la lista completa.");
+        Storage.limpiarEstadoPartida(true);
         palabrasCandidatas = PALABRAS_SECRETAS;
     }
 
@@ -121,18 +159,23 @@ export function startNewGame(startingTeam, numTeams, rulePassOnMiss) {
 
     const tiposMezclados = shuffleArray(tipos);
 
-    tableroLogico = palabrasMezcladas.map((item, index) => ({
-        id: item.id,
-        word: item.palabra,
-        type: tiposMezclados[index],
-        revealed: false
-    }));
+    tableroLogico = palabrasMezcladas.map((item, index) => {
+        return {
+            id: item.id,
+            word: item.palabra,
+            type: tiposMezclados[index],
+            revealed: false,
+            img: item.img || null
+        };
+    });
 
     Storage.limpiarEstadoPartida(); // Limpiar el estado anterior (si existe)
 
     UI.ocultarBotonesInicio();
     recalcularEstado(tableroLogico); // <--- Esto guarda el estado
     UI.actualizarIndicadorTurno(turnoActual, juegoTerminado);
+    UI.actualizarVisibilidadToggleBtn(selectedMode);
+    UI.setInitialDisplayMode(selectedMode);
     UI.renderizarTablero(tableroLogico, handleCardClick, juegoTerminado);
     UI.mostrarClaveEnConsola(tableroLogico);
 }
@@ -265,17 +308,21 @@ export function initGame() {
             id: item.id,
             word: PALABRAS_MAPA.get(item.id),
             type: TIPOS_CARTA.MAPEO_INVERSO[item.type],
-            revealed: item.r || false
+            revealed: item.r || false,
+            img: IMAGENES_MAPA.get(item.id),
         }));
 
         turnoActual = estadoGuardado.turno || TIPOS_CARTA.AZUL;
         juegoTerminado = estadoGuardado.terminado || false;
         numeroDeEquipos = estadoGuardado.numTeams || 2;
         paseTurnoAlFallar = estadoGuardado.turnPassRule !== undefined ? estadoGuardado.turnPassRule : true;
+        selectedMode = estadoGuardado.selectedMode || MODOS_DE_JUEGO.ORIGINAL;
 
         UI.ocultarBotonesInicio();
         recalcularEstado(tableroLogico);
         UI.actualizarIndicadorTurno(turnoActual, juegoTerminado);
+        UI.actualizarVisibilidadToggleBtn(selectedMode);
+        UI.setInitialDisplayMode(selectedMode);
         UI.renderizarTablero(tableroLogico, handleCardClick, juegoTerminado);
         UI.mostrarClaveEnConsola(tableroLogico);
         return true;
@@ -337,11 +384,13 @@ export function mostrarClaveSecretaURL(cadenaCifrada) {
         tableroLogico = estadoDecodificado.map(item => {
             const word = PALABRAS_MAPA.get(item.id);
             const type = TIPOS_CARTA.MAPEO_INVERSO[item.type];
+            const img = IMAGENES_MAPA.get(item.id);
             return {
                 id: item.id,
                 word: word,
                 type: type,
-                revealed: true // Todas reveladas para el Líder de Espías
+                revealed: true, // Todas reveladas para el Líder de Espías
+                img: img
             };
         });
 
@@ -350,6 +399,7 @@ export function mostrarClaveSecretaURL(cadenaCifrada) {
 
         UI.ocultarBotonesInicio();
         UI.actualizarUIModoLider(tableroLogico);
+        UI.actualizarVisibilidadToggleBtn(estadoPartida.selectedMode);
 
     } catch (e) {
         console.error("Error al procesar el JSON del tablero descifrado para la clave:", e);
@@ -366,6 +416,19 @@ export function obtenerEstadoCodificadoURL() {
     return urlParams.get('clave'); // Busca el parámetro ?clave=...
 }
 
+/**
+ * Vuelve a renderizar el tablero con el estado actual, útil para el toggle de visualización.
+ */
+export function reRenderBoard() {
+    // Si el juego está en modo líder de espías, forzar el modo de líder (que a su vez llama a renderizarTablero)
+    // Se utiliza el indicador de texto de UI.actualizarUIModoLider para la detección.
+    if (document.getElementById('current-turn').innerHTML.includes('MODO LÍDER DE ESPÍAS')) {
+        UI.actualizarUIModoLider(tableroLogico);
+    } else {
+        UI.renderizarTablero(tableroLogico, handleCardClick, juegoTerminado);
+    }
+}
+
 // =========================================================
 // Funciones de Acceso a UI (Exportadas)
 // =========================================================
@@ -376,3 +439,4 @@ export function obtenerEstadoCodificadoURL() {
 export function getTableroLogico() {
     return tableroLogico;
 }
+
