@@ -155,7 +155,6 @@ export function renderizarTablero(tableroLogico, manejarClickTarjeta, juegoTermi
         }
     });
 
-    actualizarTextoToggleBtn();
 }
 
 /**
@@ -163,6 +162,7 @@ export function renderizarTablero(tableroLogico, manejarClickTarjeta, juegoTermi
  */
 export function actualizarTextoToggleBtn() {
     const toggleBtn = document.getElementById('toggle-display-btn');
+    mostrarImagenes = !mostrarImagenes;
     if (toggleBtn) {
         if (toggleBtn.disabled) {
             toggleBtn.innerHTML = '🔠 Sin imágenes';
@@ -177,7 +177,7 @@ export function actualizarTextoToggleBtn() {
             toggleBtn.title = 'Cambiar a Imágenes';
         }
     }
-    mostrarImagenes = !mostrarImagenes;
+    
 }
 
 // =========================================================
@@ -370,7 +370,7 @@ export function cargarOpcionesTema() {
         selectElement.appendChild(option);
     }
 
-    // Asegúrate de que el modo CLASICO sea el seleccionado por defecto
+    // Asegúrate de que el modo ORIGINAL sea el seleccionado por defecto
     selectElement.value = MODOS_DE_JUEGO.ORIGINAL;
 }
 
