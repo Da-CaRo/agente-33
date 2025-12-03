@@ -422,6 +422,9 @@ export function obtenerEstadoCodificadoURL() {
 export function reRenderBoard() {
     // Si el juego está en modo líder de espías, forzar el modo de líder (que a su vez llama a renderizarTablero)
     // Se utiliza el indicador de texto de UI.actualizarUIModoLider para la detección.
+
+    UI.actualizarTextoToggleBtn();
+
     if (document.getElementById('current-turn').innerHTML.includes('MODO LÍDER DE ESPÍAS')) {
         UI.actualizarUIModoLider(tableroLogico);
     } else {
