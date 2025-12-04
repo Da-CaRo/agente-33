@@ -132,8 +132,8 @@ export function renderizarTablero(tableroLogico, manejarClickTarjeta, juegoTermi
         let cardContent;
 
         if (shouldShowImage) {
-            if (card.img.startsWith('img/')) {
-                cardContent = `<img src="${card.img}" class="h-16"></img>`
+            if (card.img.startsWith('i/')) {
+                cardContent = `<img height="64" width="64" src="https://cdn.simpleicons.org/${card.img.replace('i/', '')}" />`
             } else {
                 cardContent = `<span class="fi fi-${card.img}" alt="${card.word}"></span>`;;
 
