@@ -117,7 +117,7 @@ export function startNewGame(startingTeam, numTeams, rulePassOnMiss, mode) {
         // Modo clásico: usa TODAS las palabras que NO se han usado previamente.
         palabrasFiltradas = PALABRAS_SECRETAS.filter(item => {
             // Excluir si tiene la etiqueta "Bandera". Si item.etiquetas es null/undefined, se incluye.
-            return !(item.etiquetas && item.etiquetas.includes(ETIQUETAS.BANDERAS));
+            return !(item.etiquetas && (item.etiquetas.includes(ETIQUETAS.BANDERAS) || item.etiquetas.includes(ETIQUETAS.MARCAS)));
         });
     } else {
         // Filtrar las palabras: la palabra debe incluir AL MENOS una de las categorías seleccionadas
