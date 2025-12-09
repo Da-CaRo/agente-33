@@ -333,11 +333,13 @@ export function mostrarEstadisticas() {
  * Controla si el botón de alternancia (imágenes/palabras) debe ser visible.
  * Se muestra solo si el modo actual es uno de los modos de bandera.
  * @param {string} mode - El modo de juego seleccionado.
+ * @param {boolean} show_button - Regla para mostrar o no el botón.
  */
-export function actualizarVisibilidadToggleBtn(mode) {
+export function actualizarVisibilidadToggleBtn(mode, show_button) {
+
     const toggleBtn = document.getElementById('toggle-display-btn');
     if (toggleBtn) {
-        if (MODOS_DE_JUEGO_BANDERAS.includes(mode)) {
+        if (MODOS_DE_JUEGO_BANDERAS.includes(mode) && show_button) {
             toggleBtn.classList.remove('hidden'); // Mostrar si es un modo de banderas
         } else {
             toggleBtn.classList.add('hidden'); // Ocultar si no lo es
@@ -378,7 +380,7 @@ export function cargarOpcionesTema() {
  * Actualiza el estado visual de los botones de regla según la opción seleccionada.
  * @param {boolean} sePasaTurno - Indica si el turno pasa al fallar.
  */
-export function actualizarBotonRegla(sePasaTurno) {
+export function actualizarBotonReglaTurno(sePasaTurno) {
     const btnPass = document.getElementById('rule-pass-on-miss'); // Estándar (Azul)
     const btnNoPass = document.getElementById('rule-no-pass-on-miss'); // Hardcore (Rojo)
 
@@ -390,6 +392,38 @@ export function actualizarBotonRegla(sePasaTurno) {
     const inactiveClasses = ['bg-gray-700', 'text-gray-300', 'hover:bg-gray-600'];
 
     if (sePasaTurno) {
+        // Activar Pasa Turno (Estándar - Azul)
+        btnPass.classList.remove(...inactiveClasses);
+        btnPass.classList.add(...activePassClasses);
+        // Desactivar No Pasa Turno (Hardcore - Gris)
+        btnNoPass.classList.remove(...activeNoPassClasses);
+        btnNoPass.classList.add(...inactiveClasses);
+    } else {
+        // Desactivar Pasa Turno (Estándar - Gris)
+        btnPass.classList.remove(...activePassClasses);
+        btnPass.classList.add(...inactiveClasses);
+        // Activar No Pasa Turno (Hardcore - Rojo)
+        btnNoPass.classList.remove(...inactiveClasses);
+        btnNoPass.classList.add(...activeNoPassClasses);
+    }
+}
+
+/**
+ * Actualiza el estado visual de los botones de regla según la opción seleccionada.
+ * @param {boolean} sePuedeCambiarAPalabra - Indica si el turno pasa al fallar.
+ */
+export function actualizarBotonReglaImagen(sePuedeCambiarAPalabra) {
+    const btnPass = document.getElementById('rule-toggle-img-word'); // Estándar (Azul)
+    const btnNoPass = document.getElementById('rule-no-toggle-img-word'); // Hardcore (Rojo)
+
+    // Clases específicas para el botón "Pasa Turno" (Estándar)
+    const activePassClasses = ['bg-blue-600', 'text-white', 'hover:bg-blue-700'];
+    // Clases específicas para el botón "NO Pasa Turno" (Hardcore)
+    const activeNoPassClasses = ['bg-red-600', 'text-white', 'hover:bg-red-700'];
+    // Clases para el estado inactivo (Gris)
+    const inactiveClasses = ['bg-gray-700', 'text-gray-300', 'hover:bg-gray-600'];
+
+    if (sePuedeCambiarAPalabra) {
         // Activar Pasa Turno (Estándar - Azul)
         btnPass.classList.remove(...inactiveClasses);
         btnPass.classList.add(...activePassClasses);

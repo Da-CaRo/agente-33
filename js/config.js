@@ -5,6 +5,7 @@ export const ENCRYPTION_KEY = 'AGENT33';
 export const USADAS_STORAGE_KEY = 'agente33_palabrasUsadas';
 export const GAME_STATE_STORAGE_KEY = 'agente33_estadoActual';
 export const RULE_TURN_PASS_KEY = 'agente33_reglaPaseTurno';
+export const RULE_TOGGLE_IMG_WORD_KEY = 'agente33_reglaCambioImagen';
 
 // Mapeo de tipos de cartas y códigos de codificación
 export const TIPOS_CARTA = {

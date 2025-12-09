@@ -158,5 +158,6 @@ export function limpiarTodasVariables() {
     localStorage.removeItem(GAME_STATE_STORAGE_KEY);
     localStorage.removeItem(USADAS_STORAGE_KEY);
     localStorage.removeItem(RULE_TURN_PASS_KEY);
+    localStorage.removeItem(RULE_TOGGLE_IMG_WORD_KEY);
     console.log("✅ Todas las variables de juego han sido borradas");
 }

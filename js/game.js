@@ -2,6 +2,7 @@ import { PALABRAS_SECRETAS } from '../data/palabras.js';
 import { TIPOS_CARTA, GAME_STATE_STORAGE_KEY, MODOS_DE_JUEGO, MODO_A_CATEGORIAS, ETIQUETAS, MODOS_DE_JUEGO_BANDERAS } from './config.js';
 import * as Storage from './storage.js';
 import * as UI from './ui.js';
+import { RULE_TURN_PASS_KEY, RULE_TOGGLE_IMG_WORD_KEY } from './config.js';
 
 // --- ESTADO INTERNO DEL JUEGO ---
 let tableroLogico = [];
@@ -12,6 +13,7 @@ let agentesVerdesRestantes = 0;
 let turnoActual = TIPOS_CARTA.AZUL;
 let numeroDeEquipos = 2;
 let paseTurnoAlFallar = true;
+let cambiarImagenesPalabras = true;
 let selectedMode = MODOS_DE_JUEGO.ORIGINAL;
 const PALABRAS_MAPA = new Map(PALABRAS_SECRETAS.map(p => [p.id, p.palabra]));
 const IMAGENES_MAPA = new Map(PALABRAS_SECRETAS.map(p => [p.id, p.img]));
@@ -66,8 +68,9 @@ function obtenerEstadoParaGuardar() {
         turno: turnoActual,
         terminado: juegoTerminado,
         numTeams: numeroDeEquipos,
-        turnPassRule: paseTurnoAlFallar,
-        selectedMode: selectedMode
+        selectedMode: selectedMode,
+        turnPassRule: localStorage.getItem(RULE_TURN_PASS_KEY),
+        toggleImgRule: localStorage.getItem(RULE_TOGGLE_IMG_WORD_KEY),
     };
 }
 
@@ -78,12 +81,12 @@ function obtenerEstadoParaGuardar() {
 /**
  * Función que encapsula toda la lógica para empezar una partida nueva.
  */
-export function startNewGame(startingTeam, numTeams, rulePassOnMiss, mode) {
-
+export function startNewGame(startingTeam, numTeams, mode, reglasAplicadas) {
     juegoTerminado = false;
     turnoActual = startingTeam;
     numeroDeEquipos = numTeams;
-    paseTurnoAlFallar = rulePassOnMiss;
+    paseTurnoAlFallar = reglasAplicadas[0];
+    cambiarImagenesPalabras = reglasAplicadas[1];
     selectedMode = mode;
 
     const equipos = [TIPOS_CARTA.AZUL, TIPOS_CARTA.ROJO];
@@ -174,7 +177,7 @@ export function startNewGame(startingTeam, numTeams, rulePassOnMiss, mode) {
     UI.ocultarBotonesInicio();
     recalcularEstado(tableroLogico); // <--- Esto guarda el estado
     UI.actualizarIndicadorTurno(turnoActual, juegoTerminado);
-    UI.actualizarVisibilidadToggleBtn(selectedMode);
+    UI.actualizarVisibilidadToggleBtn(selectedMode, cambiarImagenesPalabras);
     UI.setInitialDisplayMode(selectedMode);
     UI.renderizarTablero(tableroLogico, handleCardClick, juegoTerminado);
     UI.mostrarClaveEnConsola(tableroLogico);
@@ -315,13 +318,15 @@ export function initGame() {
         turnoActual = estadoGuardado.turno || TIPOS_CARTA.AZUL;
         juegoTerminado = estadoGuardado.terminado || false;
         numeroDeEquipos = estadoGuardado.numTeams || 2;
-        paseTurnoAlFallar = estadoGuardado.turnPassRule !== undefined ? estadoGuardado.turnPassRule : true;
         selectedMode = estadoGuardado.selectedMode || MODOS_DE_JUEGO.ORIGINAL;
+        paseTurnoAlFallar = estadoGuardado.turnPassRule !== undefined ? estadoGuardado.turnPassRule : true;
+        cambiarImagenesPalabras = estadoGuardado.toggleImgRule !== undefined ? estadoGuardado.toggleImgRule : true;
+        
 
         UI.ocultarBotonesInicio();
         recalcularEstado(tableroLogico);
         UI.actualizarIndicadorTurno(turnoActual, juegoTerminado);
-        UI.actualizarVisibilidadToggleBtn(selectedMode);
+        UI.actualizarVisibilidadToggleBtn(selectedMode, cambiarImagenesPalabras);
         UI.setInitialDisplayMode(selectedMode);
         UI.renderizarTablero(tableroLogico, handleCardClick, juegoTerminado);
         UI.mostrarClaveEnConsola(tableroLogico);
@@ -352,11 +357,11 @@ export function generarEnlaceClave() {
         const urlToShare = `${urlBase}?clave=${encodeURIComponent(estadoCifrado)}`;
 
         // Opción 1 (Predeterminada): Mostrar Código QR
-        UI.mostrarQR(urlToShare);
+        //UI.mostrarQR(urlToShare);
 
 
         // Opción 2: Usar el viejo 'prompt' (Descomentar esta línea y comentar la línea 1)
-        //prompt("Copia y comparte este enlace con el Líder de Espías:", urlToShare);
+        prompt("Copia y comparte este enlace con el Líder de Espías:", urlToShare);
     } else {
         alert("La partida no ha comenzado o es inválida.");
     }
@@ -396,10 +401,13 @@ export function mostrarClaveSecretaURL(cadenaCifrada) {
 
         numeroDeEquipos = tableroLogico.some(card => card.type === TIPOS_CARTA.VERDE) ? 3 : 2;
         paseTurnoAlFallar = estadoPartida.turnPassRule !== undefined ? estadoPartida.turnPassRule : true;
+        cambiarImagenesPalabras = estadoPartida.toggleImgRule !== undefined ? JSON.parse(estadoPartida.toggleImgRule.toLowerCase()) : true;
+        selectedMode = estadoPartida.selectedMode || MODOS_DE_JUEGO.ORIGINAL;
 
+        UI.setInitialDisplayMode(selectedMode);
         UI.ocultarBotonesInicio();
         UI.actualizarUIModoLider(tableroLogico);
-        UI.actualizarVisibilidadToggleBtn(estadoPartida.selectedMode);
+        UI.actualizarVisibilidadToggleBtn(estadoPartida.selectedMode, cambiarImagenesPalabras);
 
     } catch (e) {
         console.error("Error al procesar el JSON del tablero descifrado para la clave:", e);
