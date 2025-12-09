@@ -1,4 +1,4 @@
-import { ENCRYPTION_KEY, GAME_STATE_STORAGE_KEY, USADAS_STORAGE_KEY, RULE_TURN_PASS_KEY } from './config.js';
+import { ENCRYPTION_KEY, GAME_STATE_STORAGE_KEY, USADAS_STORAGE_KEY, RULE_TURN_PASS_KEY, RULE_IMG_COLOR_KEY } from './config.js';
 
 // =========================================================
 // Funciones de Cifrado XOR
@@ -159,5 +159,6 @@ export function limpiarTodasVariables() {
     localStorage.removeItem(USADAS_STORAGE_KEY);
     localStorage.removeItem(RULE_TURN_PASS_KEY);
     localStorage.removeItem(RULE_TOGGLE_IMG_WORD_KEY);
+    localStorage.removeItem(RULE_IMG_COLOR_KEY);
     console.log("✅ Todas las variables de juego han sido borradas");
 }

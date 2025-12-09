@@ -2,7 +2,7 @@ import { PALABRAS_SECRETAS } from '../data/palabras.js';
 import { TIPOS_CARTA, GAME_STATE_STORAGE_KEY, MODOS_DE_JUEGO, MODO_A_CATEGORIAS, ETIQUETAS, MODOS_DE_JUEGO_BANDERAS } from './config.js';
 import * as Storage from './storage.js';
 import * as UI from './ui.js';
-import { RULE_TURN_PASS_KEY, RULE_TOGGLE_IMG_WORD_KEY } from './config.js';
+import { RULE_TURN_PASS_KEY, RULE_TOGGLE_IMG_WORD_KEY, RULE_IMG_COLOR_KEY } from './config.js';
 
 // --- ESTADO INTERNO DEL JUEGO ---
 let tableroLogico = [];
@@ -14,6 +14,7 @@ let turnoActual = TIPOS_CARTA.AZUL;
 let numeroDeEquipos = 2;
 let paseTurnoAlFallar = true;
 let cambiarImagenesPalabras = true;
+let colorImagenes = true;
 let selectedMode = MODOS_DE_JUEGO.ORIGINAL;
 const PALABRAS_MAPA = new Map(PALABRAS_SECRETAS.map(p => [p.id, p.palabra]));
 const IMAGENES_MAPA = new Map(PALABRAS_SECRETAS.map(p => [p.id, p.img]));
@@ -71,6 +72,7 @@ function obtenerEstadoParaGuardar() {
         selectedMode: selectedMode,
         turnPassRule: localStorage.getItem(RULE_TURN_PASS_KEY),
         toggleImgRule: localStorage.getItem(RULE_TOGGLE_IMG_WORD_KEY),
+        imgColorRule: localStorage.getItem(RULE_IMG_COLOR_KEY),
     };
 }
 
@@ -87,6 +89,7 @@ export function startNewGame(startingTeam, numTeams, mode, reglasAplicadas) {
     numeroDeEquipos = numTeams;
     paseTurnoAlFallar = reglasAplicadas[0];
     cambiarImagenesPalabras = reglasAplicadas[1];
+    colorImagenes = reglasAplicadas[2];
     selectedMode = mode;
 
     const equipos = [TIPOS_CARTA.AZUL, TIPOS_CARTA.ROJO];
@@ -179,7 +182,7 @@ export function startNewGame(startingTeam, numTeams, mode, reglasAplicadas) {
     UI.actualizarIndicadorTurno(turnoActual, juegoTerminado);
     UI.actualizarVisibilidadToggleBtn(selectedMode, cambiarImagenesPalabras);
     UI.setInitialDisplayMode(selectedMode);
-    UI.renderizarTablero(tableroLogico, handleCardClick, juegoTerminado);
+    UI.renderizarTablero(tableroLogico, handleCardClick, juegoTerminado, colorImagenes);
     UI.mostrarClaveEnConsola(tableroLogico);
 }
 
@@ -217,7 +220,7 @@ export function handleCardClick(event) {
     }
 
     recalcularEstado(tableroLogico);
-    UI.renderizarTablero(tableroLogico, handleCardClick, juegoTerminado); // Re-renderizar para actualizar color
+    UI.renderizarTablero(tableroLogico, handleCardClick, juegoTerminado, colorImagenes); // Re-renderizar para actualizar color
 
     // Si no ha terminado, verificar si el turno debe cambiar automáticamente
     if (!juegoTerminado && finDeTurno) {
@@ -291,7 +294,7 @@ function verificarFinJuego() {
     if (juegoTerminado) {
         UI.actualizarIndicadorTurno(turnoActual, juegoTerminado, mensaje);
         Storage.limpiarEstadoPartida();
-        UI.renderizarTablero(tableroLogico, handleCardClick, juegoTerminado);
+        UI.renderizarTablero(tableroLogico, handleCardClick, juegoTerminado, colorImagenes);
     }
 }
 
@@ -321,6 +324,7 @@ export function initGame() {
         selectedMode = estadoGuardado.selectedMode || MODOS_DE_JUEGO.ORIGINAL;
         paseTurnoAlFallar = estadoGuardado.turnPassRule !== undefined ? estadoGuardado.turnPassRule : true;
         cambiarImagenesPalabras = estadoGuardado.toggleImgRule !== undefined ? estadoGuardado.toggleImgRule : true;
+        colorImagenes = estadoGuardado.imgColorRule !== undefined ? estadoGuardado.imgColorRule : true;
         
 
         UI.ocultarBotonesInicio();
@@ -328,7 +332,7 @@ export function initGame() {
         UI.actualizarIndicadorTurno(turnoActual, juegoTerminado);
         UI.actualizarVisibilidadToggleBtn(selectedMode, cambiarImagenesPalabras);
         UI.setInitialDisplayMode(selectedMode);
-        UI.renderizarTablero(tableroLogico, handleCardClick, juegoTerminado);
+        UI.renderizarTablero(tableroLogico, handleCardClick, juegoTerminado, colorImagenes);
         UI.mostrarClaveEnConsola(tableroLogico);
         return true;
     }
@@ -402,6 +406,7 @@ export function mostrarClaveSecretaURL(cadenaCifrada) {
         numeroDeEquipos = tableroLogico.some(card => card.type === TIPOS_CARTA.VERDE) ? 3 : 2;
         paseTurnoAlFallar = estadoPartida.turnPassRule !== undefined ? estadoPartida.turnPassRule : true;
         cambiarImagenesPalabras = estadoPartida.toggleImgRule !== undefined ? JSON.parse(estadoPartida.toggleImgRule.toLowerCase()) : true;
+        colorImagenes = estadoPartida.imgColorRule !== undefined ? JSON.parse(estadoPartida.imgColorRule.toLowerCase()) : true;
         selectedMode = estadoPartida.selectedMode || MODOS_DE_JUEGO.ORIGINAL;
 
         UI.setInitialDisplayMode(selectedMode);
@@ -436,7 +441,7 @@ export function reRenderBoard() {
     if (document.getElementById('current-turn').innerHTML.includes('MODO LÍDER DE ESPÍAS')) {
         UI.actualizarUIModoLider(tableroLogico);
     } else {
-        UI.renderizarTablero(tableroLogico, handleCardClick, juegoTerminado);
+        UI.renderizarTablero(tableroLogico, handleCardClick, juegoTerminado, colorImagenes);
     }
 }
 

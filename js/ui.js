@@ -100,8 +100,9 @@ export function actualizarIndicadorTurno(turnoActual, juegoTerminado, mensajeFin
  * @param {Function} manejarClickTarjeta - Función para manejar el clic en una tarjeta.
  * @param {boolean} juegoTerminado - Indica si el juego ha terminado.
  * @param {boolean} forzarPalabras - Si es true, siempre muestra palabras (útil para el modo Líder de Espías).
+ * @param {boolean} imgColorRule - Si es true, se muestras los logos con color.
  */
-export function renderizarTablero(tableroLogico, manejarClickTarjeta, juegoTerminado, forzarPalabras = false) {
+export function renderizarTablero(tableroLogico, manejarClickTarjeta, juegoTerminado, imgColorRule = true, forzarPalabras = false) {
     const board = document.getElementById('game-board');
     board.innerHTML = ''; // Limpiamos el tablero
 
@@ -133,7 +134,14 @@ export function renderizarTablero(tableroLogico, manejarClickTarjeta, juegoTermi
 
         if (shouldShowImage) {
             if (card.img.startsWith('i/')) {
-                cardContent = `<img height="64" width="64" src="https://cdn.simpleicons.org/${card.img.replace('i/', '')}" />`
+                console.log(imgColorRule);
+                let src = '';
+                if (imgColorRule) {
+                    src = `https://cdn.simpleicons.org/${card.img.replace('i/', '')}`;
+                } else {
+                    src = `https://cdn.jsdelivr.net/npm/simple-icons@v16/icons/${card.img.replace('i/', '')}.svg`;
+                }
+                cardContent = `<img height="64" width="64" src="${src}" />`
             } else {
                 cardContent = `<span class="fi fi-${card.img}" alt="${card.word}"></span>`;;
 
@@ -177,7 +185,7 @@ export function actualizarTextoToggleBtn() {
             toggleBtn.title = 'Cambiar a Imágenes';
         }
     }
-    
+
 }
 
 // =========================================================
@@ -291,7 +299,7 @@ export function actualizarUIModoLider(tableroLogico) {
     }
 
     // 4. Renderizar el tablero
-    renderizarTablero(tableroLogico, null, true); // Pasar 'null' para el click handler
+    renderizarTablero(tableroLogico, null, true, colorImagenes); // Pasar 'null' para el click handler
 
     // 5. Mostrar la clave en consola
     mostrarClaveEnConsola(tableroLogico);
@@ -424,6 +432,38 @@ export function actualizarBotonReglaImagen(sePuedeCambiarAPalabra) {
     const inactiveClasses = ['bg-gray-700', 'text-gray-300', 'hover:bg-gray-600'];
 
     if (sePuedeCambiarAPalabra) {
+        // Activar Pasa Turno (Estándar - Azul)
+        btnPass.classList.remove(...inactiveClasses);
+        btnPass.classList.add(...activePassClasses);
+        // Desactivar No Pasa Turno (Hardcore - Gris)
+        btnNoPass.classList.remove(...activeNoPassClasses);
+        btnNoPass.classList.add(...inactiveClasses);
+    } else {
+        // Desactivar Pasa Turno (Estándar - Gris)
+        btnPass.classList.remove(...activePassClasses);
+        btnPass.classList.add(...inactiveClasses);
+        // Activar No Pasa Turno (Hardcore - Rojo)
+        btnNoPass.classList.remove(...inactiveClasses);
+        btnNoPass.classList.add(...activeNoPassClasses);
+    }
+}
+
+/**
+ * Actualiza el estado visual de los botones de regla según la opción seleccionada.
+ * @param {boolean} sePuedeCambiarAPalabra - Indica si el turno pasa al fallar.
+ */
+export function actualizarBotonReglaColor(seMuestraLogoColor) {
+    const btnPass = document.getElementById('rule-color-img'); // Estándar (Azul)
+    const btnNoPass = document.getElementById('rule-no-color-img'); // Hardcore (Rojo)
+
+    // Clases específicas para el botón "Pasa Turno" (Estándar)
+    const activePassClasses = ['bg-blue-600', 'text-white', 'hover:bg-blue-700'];
+    // Clases específicas para el botón "NO Pasa Turno" (Hardcore)
+    const activeNoPassClasses = ['bg-red-600', 'text-white', 'hover:bg-red-700'];
+    // Clases para el estado inactivo (Gris)
+    const inactiveClasses = ['bg-gray-700', 'text-gray-300', 'hover:bg-gray-600'];
+
+    if (seMuestraLogoColor) {
         // Activar Pasa Turno (Estándar - Azul)
         btnPass.classList.remove(...inactiveClasses);
         btnPass.classList.add(...activePassClasses);
