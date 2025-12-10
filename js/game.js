@@ -249,6 +249,7 @@ export function passTurn() {
     turnoActual = nextTurn;
     UI.actualizarIndicadorTurno(turnoActual, juegoTerminado);
     Storage.guardarEstadoPartida(obtenerEstadoParaGuardar());
+    alert (`¡Turno cambiado! Ahora es el turno del equipo ${turnoActual.toUpperCase()}.`)
     console.log(`¡Turno cambiado! Ahora es el turno del equipo ${turnoActual.toUpperCase()}.`);
 }
 
@@ -323,8 +324,8 @@ export function initGame() {
         numeroDeEquipos = estadoGuardado.numTeams || 2;
         selectedMode = estadoGuardado.selectedMode || MODOS_DE_JUEGO.ORIGINAL;
         paseTurnoAlFallar = estadoGuardado.turnPassRule !== undefined ? estadoGuardado.turnPassRule : true;
-        cambiarImagenesPalabras = estadoGuardado.toggleImgRule !== undefined ? estadoGuardado.toggleImgRule : true;
-        colorImagenes = estadoGuardado.imgColorRule !== undefined ? estadoGuardado.imgColorRule : true;
+        cambiarImagenesPalabras = estadoGuardado.toggleImgRule !== undefined ? JSON.parse(estadoGuardado.toggleImgRule.toLowerCase()) : true;
+        colorImagenes = estadoGuardado.imgColorRule !== undefined ? JSON.parse(estadoGuardado.imgColorRule.toLowerCase()) : true;
         
 
         UI.ocultarBotonesInicio();
@@ -411,7 +412,7 @@ export function mostrarClaveSecretaURL(cadenaCifrada) {
 
         UI.setInitialDisplayMode(selectedMode);
         UI.ocultarBotonesInicio();
-        UI.actualizarUIModoLider(tableroLogico);
+        UI.actualizarUIModoLider(tableroLogico, colorImagenes);
         UI.actualizarVisibilidadToggleBtn(estadoPartida.selectedMode, cambiarImagenesPalabras);
 
     } catch (e) {
@@ -439,7 +440,7 @@ export function reRenderBoard() {
     UI.actualizarTextoToggleBtn();
 
     if (document.getElementById('current-turn').innerHTML.includes('MODO LÍDER DE ESPÍAS')) {
-        UI.actualizarUIModoLider(tableroLogico);
+        UI.actualizarUIModoLider(tableroLogico, colorImagenes);
     } else {
         UI.renderizarTablero(tableroLogico, handleCardClick, juegoTerminado, colorImagenes);
     }

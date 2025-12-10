@@ -134,14 +134,13 @@ export function renderizarTablero(tableroLogico, manejarClickTarjeta, juegoTermi
 
         if (shouldShowImage) {
             if (card.img.startsWith('i/')) {
-                console.log(imgColorRule);
                 let src = '';
                 if (imgColorRule) {
                     src = `https://cdn.simpleicons.org/${card.img.replace('i/', '')}`;
                 } else {
                     src = `https://cdn.jsdelivr.net/npm/simple-icons@v16/icons/${card.img.replace('i/', '')}.svg`;
                 }
-                cardContent = `<img height="64" width="64" src="${src}" />`
+                cardContent = `<img height="64" width="64" src="${src}" class="p-1 sm:p-2 rounded-lg bg-gray-200" />`
             } else {
                 cardContent = `<span class="fi fi-${card.img}" alt="${card.word}"></span>`;;
 
@@ -269,7 +268,7 @@ export function mostrarQR(url) {
 /** Actualiza la interfaz para el modo líder de espías.
  * @param {Array} tableroLogico - El tablero lógico con las cartas y sus tipos.
  */
-export function actualizarUIModoLider(tableroLogico) {
+export function actualizarUIModoLider(tableroLogico, colorImagenes) {
     // 1. Ocultar botones no relevantes
     document.getElementById('pass-turn-btn').classList.add('hidden');
     document.getElementById('reset-game-btn').classList.add('hidden');
