@@ -1372,7 +1372,7 @@ export const PALABRAS_SECRETAS = [
     { "id": 1367, "palabra": "SHOWTIME", "etiquetas": ["Marca"], "img": "i/showtime" },
     { "id": 1368, "palabra": "SIEMENS", "etiquetas": ["Marca"], "img": "i/siemens" },
     //{ "id": 1369, "palabra": "SINGAPORE AIRLINES", "etiquetas": ["Marca"], "img": "i/singaporeairlines" },
-    { "id": 1370, "palabra": "ŠKODA", "etiquetas": ["Marca"], "img": "i/Skoda" },
+    { "id": 1370, "palabra": "ŠKODA", "etiquetas": ["Marca"], "img": "i/skoda" },
     { "id": 1371, "palabra": "SKY", "etiquetas": ["Marca"], "img": "i/sky" },
     { "id": 1372, "palabra": "SMART", "etiquetas": ["Marca"], "img": "i/smart" },
     { "id": 1373, "palabra": "SONY", "etiquetas": ["Marca"], "img": "i/sony" },
