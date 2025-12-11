@@ -1,4 +1,4 @@
-import { TIPOS_CARTA, MODOS_DE_JUEGO, ETIQUETAS_MODOS, MODOS_DE_JUEGO_BANDERAS } from './config.js';
+import { TIPOS_CARTA, MODOS_DE_JUEGO, ETIQUETAS_MODOS, MODOS_DE_JUEGO_IMAGENES, MODOS_DE_JUEGO_LOGOS } from './config.js';
 
 // =========================================================
 // Funciones de Visibilidad y Estado del Tablero
@@ -12,7 +12,7 @@ export let mostrarImagenes = false;
  * @param {string} mode - El modo de juego seleccionado.
  */
 export function setInitialDisplayMode(mode) {
-    if (MODOS_DE_JUEGO_BANDERAS.includes(mode)) {
+    if (MODOS_DE_JUEGO_IMAGENES.includes(mode)) {
         mostrarImagenes = true;
     } else {
         mostrarImagenes = false;
@@ -100,8 +100,9 @@ export function actualizarIndicadorTurno(turnoActual, juegoTerminado, mensajeFin
  * @param {Function} manejarClickTarjeta - Función para manejar el clic en una tarjeta.
  * @param {boolean} juegoTerminado - Indica si el juego ha terminado.
  * @param {boolean} forzarPalabras - Si es true, siempre muestra palabras (útil para el modo Líder de Espías).
+ * @param {boolean} imgColorRule - Si es true, se muestras los logos con color.
  */
-export function renderizarTablero(tableroLogico, manejarClickTarjeta, juegoTerminado, forzarPalabras = false) {
+export function renderizarTablero(tableroLogico, manejarClickTarjeta, juegoTerminado, imgColorRule = true, forzarPalabras = false) {
     const board = document.getElementById('game-board');
     board.innerHTML = ''; // Limpiamos el tablero
 
@@ -133,7 +134,13 @@ export function renderizarTablero(tableroLogico, manejarClickTarjeta, juegoTermi
 
         if (shouldShowImage) {
             if (card.img.startsWith('i/')) {
-                cardContent = `<img height="64" width="64" src="https://cdn.simpleicons.org/${card.img.replace('i/', '')}" />`
+                let src = '';
+                if (imgColorRule) {
+                    src = `https://cdn.simpleicons.org/${card.img.replace('i/', '')}`;
+                } else {
+                    src = `https://cdn.jsdelivr.net/npm/simple-icons@v16/icons/${card.img.replace('i/', '')}.svg`;
+                }
+                cardContent = `<img height="64" width="64" src="${src}" class="p-1 sm:p-2 rounded-lg bg-gray-200" />`
             } else {
                 cardContent = `<span class="fi fi-${card.img}" alt="${card.word}"></span>`;;
 
@@ -177,7 +184,7 @@ export function actualizarTextoToggleBtn() {
             toggleBtn.title = 'Cambiar a Imágenes';
         }
     }
-    
+
 }
 
 // =========================================================
@@ -261,7 +268,7 @@ export function mostrarQR(url) {
 /** Actualiza la interfaz para el modo líder de espías.
  * @param {Array} tableroLogico - El tablero lógico con las cartas y sus tipos.
  */
-export function actualizarUIModoLider(tableroLogico) {
+export function actualizarUIModoLider(tableroLogico, colorImagenes) {
     // 1. Ocultar botones no relevantes
     document.getElementById('pass-turn-btn').classList.add('hidden');
     document.getElementById('reset-game-btn').classList.add('hidden');
@@ -291,7 +298,7 @@ export function actualizarUIModoLider(tableroLogico) {
     }
 
     // 4. Renderizar el tablero
-    renderizarTablero(tableroLogico, null, true); // Pasar 'null' para el click handler
+    renderizarTablero(tableroLogico, null, true, colorImagenes); // Pasar 'null' para el click handler
 
     // 5. Mostrar la clave en consola
     mostrarClaveEnConsola(tableroLogico);
@@ -333,11 +340,13 @@ export function mostrarEstadisticas() {
  * Controla si el botón de alternancia (imágenes/palabras) debe ser visible.
  * Se muestra solo si el modo actual es uno de los modos de bandera.
  * @param {string} mode - El modo de juego seleccionado.
+ * @param {boolean} show_button - Regla para mostrar o no el botón.
  */
-export function actualizarVisibilidadToggleBtn(mode) {
+export function actualizarVisibilidadToggleBtn(mode, show_button) {
+
     const toggleBtn = document.getElementById('toggle-display-btn');
     if (toggleBtn) {
-        if (MODOS_DE_JUEGO_BANDERAS.includes(mode)) {
+        if (MODOS_DE_JUEGO_IMAGENES.includes(mode) && show_button) {
             toggleBtn.classList.remove('hidden'); // Mostrar si es un modo de banderas
         } else {
             toggleBtn.classList.add('hidden'); // Ocultar si no lo es
@@ -378,30 +387,144 @@ export function cargarOpcionesTema() {
  * Actualiza el estado visual de los botones de regla según la opción seleccionada.
  * @param {boolean} sePasaTurno - Indica si el turno pasa al fallar.
  */
-export function actualizarBotonRegla(sePasaTurno) {
-    const btnPass = document.getElementById('rule-pass-on-miss'); // Estándar (Azul)
-    const btnNoPass = document.getElementById('rule-no-pass-on-miss'); // Hardcore (Rojo)
+export function actualizarBotonReglaTurno(sePasaTurno) {
+    const btnPass = document.getElementById('rule-pass-on-miss'); // Estándar
+    const btnNoPass = document.getElementById('rule-no-pass-on-miss'); // Hardcore
 
-    // Clases específicas para el botón "Pasa Turno" (Estándar)
-    const activePassClasses = ['bg-blue-600', 'text-white', 'hover:bg-blue-700'];
-    // Clases específicas para el botón "NO Pasa Turno" (Hardcore)
-    const activeNoPassClasses = ['bg-red-600', 'text-white', 'hover:bg-red-700'];
+    // Clases para el estado activo (Color-Acento)
+    const activeClasses = ['text-white', 'hover:bg-blue-700'];
     // Clases para el estado inactivo (Gris)
     const inactiveClasses = ['bg-gray-700', 'text-gray-300', 'hover:bg-gray-600'];
 
     if (sePasaTurno) {
-        // Activar Pasa Turno (Estándar - Azul)
+        // Activar Pasa Turno (Color-Acento)
         btnPass.classList.remove(...inactiveClasses);
-        btnPass.classList.add(...activePassClasses);
-        // Desactivar No Pasa Turno (Hardcore - Gris)
-        btnNoPass.classList.remove(...activeNoPassClasses);
+        btnPass.classList.add(...activeClasses);
+        btnPass.style.backgroundColor = 'var(--color-acento)';
+        // Desactivar No Pasa Turno (Gris)
+        btnNoPass.classList.remove(...activeClasses);
         btnNoPass.classList.add(...inactiveClasses);
+        btnNoPass.style.backgroundColor = '';
     } else {
-        // Desactivar Pasa Turno (Estándar - Gris)
-        btnPass.classList.remove(...activePassClasses);
+        // Desactivar Pasa Turno (Gris)
+        btnPass.classList.remove(...activeClasses);
         btnPass.classList.add(...inactiveClasses);
-        // Activar No Pasa Turno (Hardcore - Rojo)
+        btnPass.style.backgroundColor = '';
+        // Activar No Pasa Turno (Color-Acento)
         btnNoPass.classList.remove(...inactiveClasses);
-        btnNoPass.classList.add(...activeNoPassClasses);
+        btnNoPass.classList.add(...activeClasses);
+        btnNoPass.style.backgroundColor = 'var(--color-acento)';
+    }
+}
+
+/**
+ * Actualiza el estado visual de los botones de regla según la opción seleccionada.
+ * @param {boolean} sePuedeCambiarAPalabra - Indica si se puede cambiar entre la imagen y la palabra.
+ */
+export function actualizarBotonReglaImagen(sePuedeCambiarAPalabra) {
+    const btnToggleImg = document.getElementById('rule-toggle-img-word'); // Imagen y Palabrar
+    const btnNoToggleImg = document.getElementById('rule-no-toggle-img-word'); // Solo Imagen
+
+    // Clases para el estado activo (Color-Acento)
+    const activeClasses = ['text-white', 'hover:bg-blue-700'];
+    // Clases para el estado inactivo (Gris)
+    const inactiveClasses = ['bg-gray-700', 'text-gray-300', 'hover:bg-gray-600'];
+
+    if (sePuedeCambiarAPalabra) {
+        // Activar Imagen y Palabra (Color-Acento)
+        btnToggleImg.classList.remove(...inactiveClasses);
+        btnToggleImg.classList.add(...activeClasses);
+        btnToggleImg.style.backgroundColor = 'var(--color-acento)';
+        // Desactivar Solo Palabra (Gris)
+        btnNoToggleImg.classList.remove(...activeClasses);
+        btnNoToggleImg.classList.add(...inactiveClasses);
+        btnNoToggleImg.style.backgroundColor = '';
+    } else {
+        // Desactivar Imagen y Palabra (Gris)
+        btnToggleImg.classList.remove(...activeClasses);
+        btnToggleImg.classList.add(...inactiveClasses);
+        btnToggleImg.style.backgroundColor = '';
+        // Activar Solo Palabra (Color-Acento)
+        btnNoToggleImg.classList.remove(...inactiveClasses);
+        btnNoToggleImg.classList.add(...activeClasses);
+        btnNoToggleImg.style.backgroundColor = 'var(--color-acento)';
+    }
+}
+
+/**
+ * Actualiza el estado visual de los botones de regla según la opción seleccionada.
+ * @param {boolean} seMuestraLogoColor - Indica si el logo se muestra en el color o en negro.
+ */
+export function actualizarBotonReglaColor(seMuestraLogoColor) {
+    const btnColor = document.getElementById('rule-color-img'); // Estándar (Azul)
+    const btnNoColor = document.getElementById('rule-no-color-img'); // Hardcore (Rojo)
+
+    // Clases para el estado activo (Color-Acento)
+    const activeClasses = ['text-white', 'hover:bg-blue-700'];
+    // Clases para el estado inactivo (Gris)
+    const inactiveClasses = ['bg-gray-700', 'text-gray-300', 'hover:bg-gray-600'];
+
+    if (seMuestraLogoColor) {
+        // Activar Color (Color-Acento)
+        btnColor.classList.remove(...inactiveClasses);
+        btnColor.classList.add(...activeClasses);
+        btnColor.style.backgroundColor = 'var(--color-acento)';
+        // Desactivar No Color (Gris)
+        btnNoColor.classList.remove(...activeClasses);
+        btnNoColor.classList.add(...inactiveClasses);
+        btnNoColor.style.backgroundColor = '';
+    } else {
+        // Desactivar Color (Gris)
+        btnColor.classList.remove(...activeClasses);
+        btnColor.classList.add(...inactiveClasses);
+        btnColor.style.backgroundColor = '';
+        // Activar No Color (Rojo)
+        btnNoColor.classList.remove(...inactiveClasses);
+        btnNoColor.classList.add(...activeClasses);
+        btnNoColor.style.backgroundColor = 'var(--color-acento)';
+    }
+}
+
+/**
+ * Actualiza la visibilidad de los botones de alternancia de la regla de visualización (imagen/palabra).
+ * Estos botones solo deben ser visibles si el modo actual es uno de los modos de Bandera.
+ * @param {string} currentMode - El modo de juego seleccionado.
+ */
+export function actualizarVisibilidadBotonesReglaImagenes(currentMode) {
+    // Si no tienes un contenedor, necesitarías los IDs de los botones individuales:
+    const btnToggle = document.getElementById('rule-toggle-img-word');
+    const btnNoToggle = document.getElementById('rule-no-toggle-img-word');
+
+    // Comprobar si el modo actual está en la lista de modos de bandera
+    const isFlagMode = MODOS_DE_JUEGO_IMAGENES.includes(currentMode);
+
+    if (isFlagMode) {
+        btnToggle.classList.remove('hidden');
+        btnNoToggle.classList.remove('hidden');
+    } else {
+        btnToggle.classList.add('hidden');
+        btnNoToggle.classList.add('hidden');
+    }
+}
+
+/**
+ * Actualiza la visibilidad de los botones de alternancia de la regla de visualización (color/negro).
+ * Estos botones solo deben ser visibles si el modo actual es uno de los modos de Bandera.
+ * @param {string} currentMode - El modo de juego seleccionado.
+ */
+export function actualizarVisibilidadBotonesReglaColor(currentMode) {
+    // Si no tienes un contenedor, necesitarías los IDs de los botones individuales:
+    const btnToggle = document.getElementById('rule-color-img');
+    const btnNoToggle = document.getElementById('rule-no-color-img');
+
+    // Comprobar si el modo actual está en la lista de modos de bandera
+    const isFlagMode = MODOS_DE_JUEGO_LOGOS.includes(currentMode);
+
+    if (isFlagMode) {
+        btnToggle.classList.remove('hidden');
+        btnNoToggle.classList.remove('hidden');
+    } else {
+        btnToggle.classList.add('hidden');
+        btnNoToggle.classList.add('hidden');
     }
 }

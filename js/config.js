@@ -5,6 +5,8 @@ export const ENCRYPTION_KEY = 'AGENT33';
 export const USADAS_STORAGE_KEY = 'agente33_palabrasUsadas';
 export const GAME_STATE_STORAGE_KEY = 'agente33_estadoActual';
 export const RULE_TURN_PASS_KEY = 'agente33_reglaPaseTurno';
+export const RULE_TOGGLE_IMG_WORD_KEY = 'agente33_reglaCambioImagen';
+export const RULE_IMG_COLOR_KEY = 'agente33_reglaColorImagen';
 
 // Mapeo de tipos de cartas y códigos de codificación
 export const TIPOS_CARTA = {
@@ -144,7 +146,7 @@ export const MODO_A_CATEGORIAS = {
     
 };
 
-export const MODOS_DE_JUEGO_BANDERAS = [
+export const MODOS_DE_JUEGO_IMAGENES = [
     MODOS_DE_JUEGO.BANDERAS_FACIL,
     MODOS_DE_JUEGO.BANDERAS_MEDIO,
     MODOS_DE_JUEGO.BANDERAS,
@@ -153,5 +155,9 @@ export const MODOS_DE_JUEGO_BANDERAS = [
     MODOS_DE_JUEGO.BANDERAS_ASIA,
     MODOS_DE_JUEGO.BANDERAS_EUROPA,
     MODOS_DE_JUEGO.BANDERAS_OCEANIA,
+    MODOS_DE_JUEGO.MARCAS,
+]
+
+export const MODOS_DE_JUEGO_LOGOS = [
     MODOS_DE_JUEGO.MARCAS,
 ]
