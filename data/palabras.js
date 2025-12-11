@@ -153,7 +153,7 @@ export const PALABRAS_SECRETAS = [
     { "id": 148, "palabra": "ESTACIÓN", "etiquetas": ["Original"] },
     { "id": 149, "palabra": "ESTADIO", "etiquetas": ["Original", "Deportivo"] },
     { "id": 150, "palabra": "ESTADO", "etiquetas": ["Original"] },
-    { "id": 151, "palabra": "ESTRATERRESTRE", "etiquetas": ["Original"] },
+    { "id": 151, "palabra": "EXTRATERRESTRE", "etiquetas": ["Original"] },
     { "id": 152, "palabra": "ESTRELLA", "etiquetas": ["Original", "Ciencia", "Naturaleza"] },
     { "id": 153, "palabra": "ESTUDIO", "etiquetas": ["Original"] },
     { "id": 154, "palabra": "ETIQUETA", "etiquetas": ["Original"] },
