@@ -1,5 +1,5 @@
 import { PALABRAS_SECRETAS } from '../data/palabras.js';
-import { TIPOS_CARTA, GAME_STATE_STORAGE_KEY, MODOS_DE_JUEGO, MODO_A_CATEGORIAS, ETIQUETAS, MODOS_DE_JUEGO_BANDERAS } from './config.js';
+import { TIPOS_CARTA, GAME_STATE_STORAGE_KEY, MODOS_DE_JUEGO, MODO_A_CATEGORIAS, ETIQUETAS, MODOS_DE_JUEGO_IMAGENES } from './config.js';
 import * as Storage from './storage.js';
 import * as UI from './ui.js';
 import { RULE_TURN_PASS_KEY, RULE_TOGGLE_IMG_WORD_KEY, RULE_IMG_COLOR_KEY } from './config.js';

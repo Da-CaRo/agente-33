@@ -167,33 +167,33 @@
                             <div id="turn-pass-rule" class="flex justify-center space-x-4 mb-4 text-center">
                                 <button id="rule-pass-on-miss"
                                     class="flex-1 py-2 px-4 rounded-lg font-bold transition duration-150 border-2 border-transparent">
-                                    Fallo = Pasa Turno (Estándar)
+                                    Paso Táctico
                                 </button>
                                 <button id="rule-no-pass-on-miss"
                                     class="flex-1 py-2 px-4 rounded-lg font-bold transition duration-150 border-2 border-transparent">
-                                    Fallo = NO Pasa Turno (Hardcore)
+                                    Ataque Continuo
                                 </button>
                             </div>
 
                             <div id="toggle-img-rule" class="flex justify-center space-x-4 mb-4 text-center">
-                                <button id="rule-toggle-img-word"
-                                    class="flex-1 py-2 px-4 rounded-lg font-bold transition duration-150 border-2 border-transparent">
-                                    🔤 Palabras
-                                </button>
                                 <button id="rule-no-toggle-img-word"
                                     class="flex-1 py-2 px-4 rounded-lg font-bold transition duration-150 border-2 border-transparent">
-                                    🖼️ Imágenes
+                                    Identidad Fija <!--🖼️-->
+                                </button>
+                                <button id="rule-toggle-img-word"
+                                    class="flex-1 py-2 px-4 rounded-lg font-bold transition duration-150 border-2 border-transparent">
+                                    Visión Dual <!--🔄-->
                                 </button>
                             </div>
 
                             <div id="color-img-rule" class="flex justify-center space-x-4 mb-4 text-center">
                                 <button id="rule-color-img"
                                     class="flex-1 py-2 px-4 rounded-lg font-bold transition duration-150 border-2 border-transparent">
-                                    🔤 Color
+                                    Espectro Completo <!--✨-->
                                 </button>
                                 <button id="rule-no-color-img"
                                     class="flex-1 py-2 px-4 rounded-lg font-bold transition duration-150 border-2 border-transparent">
-                                    🖼️ Sin Color
+                                    Tinta Negra <!--⬛-->
                                 </button>
                             </div>
 
@@ -499,6 +499,18 @@
                 const teams = [TIPOS_CARTA.AZUL, TIPOS_CARTA.ROJO, TIPOS_CARTA.VERDE];
                 const randomTeam = teams[Math.floor(Math.random() * teams.length)];
                 Game.startNewGame(randomTeam, 3, selectedMode, [paseTurnoAlFallar, cambiarImagenesPalabras, colorImagenes]); // 3 Equipos
+            });
+
+            const modeSelect = document.getElementById('mode-select');
+            // Llamar al cargar la página con el valor inicial
+            UI.actualizarVisibilidadBotonesReglaImagenes(modeSelect.value);
+            UI.actualizarVisibilidadBotonesReglaColor(modeSelect.value);
+
+            // Llamar cada vez que el valor cambie
+            modeSelect.addEventListener('change', (event) => {
+                const newMode = event.target.value;
+                UI.actualizarVisibilidadBotonesReglaImagenes(newMode);
+                UI.actualizarVisibilidadBotonesReglaColor(modeSelect.value);
             });
 
 
