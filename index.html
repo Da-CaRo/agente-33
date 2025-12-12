@@ -156,14 +156,31 @@
                     <div
                         class="bg-tarjeta p-6 rounded-lg shadow-xl border border-gray-700 border-acento hover-acento transition duration-300 h-full flex flex-col justify-between">
                         <div>
-                            <span class="text-acento text-4xl mb-3 block">⚙️</span>
-                            <h3 class="text-2xl font-bold mb-2 text-gray-100 font-code">Configuración</h3>
+                            <span class="text-acento text-4xl mb-3 block">🗂️</span>
+                            <h3 class="text-2xl font-bold mb-2 text-gray-100 font-code">Misiones</h3>
                             <p class="text-texto-gris text-base">
                             <div class="flex flex-col space-y-2 mb-4">
                                 <select id="mode-select"
                                     class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded transition duration-150">
                                 </select>
+                                <select id="timer-select"
+                                    class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded transition duration-150">
+                                </select>
                             </div>
+                            </p>
+                        </div>
+                        <a href="https://da-caro.github.io/game-guides/agente-33.html" target="_blank" class="block">
+                            <span class="mt-5 inline-block text-sm font-medium text-acento hover:underline">Ver
+                                Instrucciones →</span></a>
+                    </div>
+
+                    <div
+                        class="bg-tarjeta p-6 rounded-lg shadow-xl border border-gray-700 border-acento hover-acento transition duration-300 h-full flex flex-col justify-between">
+                        <div>
+                            <span class="text-acento text-4xl mb-3 block">⚙️</span>
+                            <h3 class="text-2xl font-bold mb-2 text-gray-100 font-code">Configuración</h3>
+                            <p class="text-texto-gris text-base">
+
                             <div id="turn-pass-rule" class="flex justify-center space-x-4 mb-4 text-center">
                                 <button id="rule-pass-on-miss"
                                     class="flex-1 py-2 px-4 rounded-lg font-bold transition duration-150 border-2 border-transparent">
@@ -196,12 +213,9 @@
                                     Tinta Negra <!--⬛-->
                                 </button>
                             </div>
-
                             </p>
                         </div>
-                        <a href="https://da-caro.github.io/game-guides/agente-33.html" target="_blank" class="block">
-                            <span class="mt-5 inline-block text-sm font-medium text-acento hover:underline">Ver
-                                Instrucciones →</span></a>
+
                     </div>
 
                     <div
@@ -272,16 +286,19 @@
                         class="w-24 h-24 flex flex-col justify-center items-center text-blue-400 border-2 border-blue-600 p-1 rounded-lg bg-tarjeta text-sm">
                         🔵 Azules
                         <span class="font-bold text-3xl">-</span>
+                        <div id="blue-timer" class="text-base text-gray-500 font-mono mt-1">-</div>
                     </div>
                     <div id="red-score"
                         class="w-24 h-24 flex flex-col justify-center items-center text-red-400 border-2 border-red-600 p-1 rounded-lg bg-tarjeta text-sm">
                         🔴 Rojos
                         <span class="font-bold text-3xl">-</span>
+                        <div id="red-timer" class="text-base text-gray-500 font-mono mt-1">-</div>
                     </div>
                     <div id="green-score"
                         class="w-24 h-24 flex flex-col justify-center items-center text-green-400 border-2 border-green-600 p-1 rounded-lg bg-tarjeta hidden text-sm">
                         🟢 Verdes
                         <span class="font-bold text-3xl">-</span>
+                        <div id="green-timer" class="text-base text-gray-500 font-mono mt-1">-</div>
                     </div>
                 </div>
 
@@ -311,9 +328,15 @@
                         title="Alternar entre palabras e imágenes">
                         🔠 Mostrar Palabras
                     </button>
+                    <button id="pause-timer-btn"
+                        class="py-3 px-2 bg-gray-700 hover:bg-gray-600 text-acento font-bold rounded-full transition duration-150 flex items-center justify-center text-sm disabled:opacity-50 hidden"
+                        title="Pausar el cronómetro">
+                        ⏸️ Pausar
+                    </button>
 
                     <button id="pass-turn-btn"
-                        class="bg-yellow-500 hover:bg-yellow-4  00 text-skip font-bold py-3 px-4 rounded-full transition duration-150 text-lg shadow-lg disabled:opacity-50 hidden w-full">
+                        class="bg-yellow-500 hover:bg-yellow-4  00 text-skip font-bold py-3 px-4 rounded-full transition duration-150 text-lg shadow-lg disabled:opacity-50 hidden w-full"
+                        title="Pasar el turno">
                         Pasar Turno
                     </button>
                 </div>
@@ -354,7 +377,7 @@
         import { TIPOS_CARTA } from './js/config.js';
         import * as Game from './js/game.js';
         import * as UI from './js/ui.js';
-        import { RULE_TURN_PASS_KEY, RULE_TOGGLE_IMG_WORD_KEY, RULE_IMG_COLOR_KEY } from './js/config.js';
+        import { RULE_TURN_PASS_KEY, RULE_TOGGLE_IMG_WORD_KEY, RULE_IMG_COLOR_KEY, LAST_SELECTED_MODE_KEY, LAST_SELECTED_TIMER_KEY } from './js/config.js';
         import * as Storage from './js/storage.js'
 
         // --- ESTADO LOCAL DE REGLAS ---
@@ -373,6 +396,7 @@
             document.getElementById('reset-game-btn').addEventListener('click', Game.reiniciarPartida);
             document.getElementById('share-key-btn').addEventListener('click', Game.generarEnlaceClave);
             document.getElementById('toggle-display-btn').addEventListener('click', Game.reRenderBoard);
+            document.getElementById('pause-timer-btn').addEventListener('click', Game.togglePausa);
 
             // 1. VERIFICAR SI HAY UNA CLAVE EN LA URL (LÍDER DE ESPÍAS)
             if (claveUrl) {
@@ -413,6 +437,7 @@
             UI.actualizarBotonReglaImagen(cambiarImagenesPalabras);
             UI.actualizarBotonReglaColor(colorImagenes);
             UI.cargarOpcionesTema();
+            UI.cargarOpcionesTimer();
 
             // --- Manejadores de botones de reglas ---
             document.getElementById('rule-pass-on-miss').addEventListener('click', () => {
@@ -457,20 +482,23 @@
                 UI.mostrarEstadisticas();
                 UI.mostrarTablero();
                 const selectedMode = document.getElementById('mode-select').value;
-                Game.startNewGame(TIPOS_CARTA.AZUL, 2, selectedMode, [paseTurnoAlFallar, cambiarImagenesPalabras, colorImagenes]); // 2 Equipos
+                const selectedTimer = document.getElementById('timer-select').value;
+                Game.startNewGame(TIPOS_CARTA.AZUL, 2, selectedMode, selectedTimer, [paseTurnoAlFallar, cambiarImagenesPalabras, colorImagenes]); // 2 Equipos
             });
             document.getElementById('start-red-btn-2').addEventListener('click', () => {
                 UI.mostrarEstadisticas();
                 UI.mostrarTablero();
                 const selectedMode = document.getElementById('mode-select').value;
-                Game.startNewGame(TIPOS_CARTA.ROJO, 2, selectedMode, [paseTurnoAlFallar, cambiarImagenesPalabras, colorImagenes]); // 2 Equipos
+                const selectedTimer = document.getElementById('timer-select').value;
+                Game.startNewGame(TIPOS_CARTA.ROJO, 2, selectedMode, selectedTimer, [paseTurnoAlFallar, cambiarImagenesPalabras, colorImagenes]); // 2 Equipos
             });
             document.getElementById('start-random-btn-2').addEventListener('click', () => {
                 UI.mostrarEstadisticas();
                 UI.mostrarTablero();
                 const selectedMode = document.getElementById('mode-select').value;
+                const selectedTimer = document.getElementById('timer-select').value;
                 const randomTeam = Math.random() < 0.5 ? TIPOS_CARTA.AZUL : TIPOS_CARTA.ROJO;
-                Game.startNewGame(randomTeam, 2, selectedMode, [paseTurnoAlFallar, cambiarImagenesPalabras, colorImagenes]); // 2 Equipos
+                Game.startNewGame(randomTeam, 2, selectedMode, selectedTimer, [paseTurnoAlFallar, cambiarImagenesPalabras, colorImagenes]); // 2 Equipos
             });
 
             // Iniciar juego en MODO 3 EQUIPOS
@@ -478,39 +506,55 @@
                 UI.mostrarEstadisticas();
                 UI.mostrarTablero();
                 const selectedMode = document.getElementById('mode-select').value;
-                Game.startNewGame(TIPOS_CARTA.AZUL, 3, selectedMode, [paseTurnoAlFallar, cambiarImagenesPalabras, colorImagenes]); // 3 Equipos
+                const selectedTimer = document.getElementById('timer-select').value;
+                Game.startNewGame(TIPOS_CARTA.AZUL, 3, selectedMode, selectedTimer, [paseTurnoAlFallar, cambiarImagenesPalabras, colorImagenes]); // 3 Equipos
             });
             document.getElementById('start-red-btn-3').addEventListener('click', () => {
                 UI.mostrarEstadisticas();
                 UI.mostrarTablero();
                 const selectedMode = document.getElementById('mode-select').value;
-                Game.startNewGame(TIPOS_CARTA.ROJO, 3, selectedMode, [paseTurnoAlFallar, cambiarImagenesPalabras, colorImagenes]); // 3 Equipos
+                const selectedTimer = document.getElementById('timer-select').value;
+                Game.startNewGame(TIPOS_CARTA.ROJO, 3, selectedMode, selectedTimer, [paseTurnoAlFallar, cambiarImagenesPalabras, colorImagenes]); // 3 Equipos
             });
             document.getElementById('start-green-btn-3').addEventListener('click', () => {
                 UI.mostrarEstadisticas();
                 UI.mostrarTablero();
                 const selectedMode = document.getElementById('mode-select').value;
-                Game.startNewGame(TIPOS_CARTA.VERDE, 3, selectedMode, [paseTurnoAlFallar, cambiarImagenesPalabras, colorImagenes]); // 3 Equipos
+                const selectedTimer = document.getElementById('timer-select').value;
+                Game.startNewGame(TIPOS_CARTA.VERDE, 3, selectedMode, selectedTimer, [paseTurnoAlFallar, cambiarImagenesPalabras, colorImagenes]); // 3 Equipos
             });
             document.getElementById('start-random-btn-3').addEventListener('click', () => {
                 UI.mostrarEstadisticas();
                 UI.mostrarTablero();
                 const selectedMode = document.getElementById('mode-select').value;
+                const selectedTimer = document.getElementById('timer-select').value;
                 const teams = [TIPOS_CARTA.AZUL, TIPOS_CARTA.ROJO, TIPOS_CARTA.VERDE];
                 const randomTeam = teams[Math.floor(Math.random() * teams.length)];
-                Game.startNewGame(randomTeam, 3, selectedMode, [paseTurnoAlFallar, cambiarImagenesPalabras, colorImagenes]); // 3 Equipos
+                Game.startNewGame(randomTeam, 3, selectedMode, selectedTimer, [paseTurnoAlFallar, cambiarImagenesPalabras, colorImagenes]); // 3 Equipos
             });
 
+
+
             const modeSelect = document.getElementById('mode-select');
+            const timerSelect = document.getElementById('timer-select');
+
             // Llamar al cargar la página con el valor inicial
             UI.actualizarVisibilidadBotonesReglaImagenes(modeSelect.value);
             UI.actualizarVisibilidadBotonesReglaColor(modeSelect.value);
 
-            // Llamar cada vez que el valor cambie
-            modeSelect.addEventListener('change', (event) => {
-                const newMode = event.target.value;
+            // 2. Event Listeners para guardar configuración al cambiar (NUEVO)
+            modeSelect.addEventListener('change', (e) => {
+                const newMode = e.target.value;
                 UI.actualizarVisibilidadBotonesReglaImagenes(newMode);
                 UI.actualizarVisibilidadBotonesReglaColor(modeSelect.value);
+                Storage.guardarConfiguracion(LAST_SELECTED_MODE_KEY, e.target.value);
+                console.log(`Modo guardado: ${e.target.value}`);
+            });
+
+            timerSelect.addEventListener('change', (e) => {
+
+                Storage.guardarConfiguracion(LAST_SELECTED_TIMER_KEY, e.target.value);
+                console.log(`Timer guardado: ${e.target.value}`);
             });
 
 

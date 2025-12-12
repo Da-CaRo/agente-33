@@ -1,5 +1,5 @@
-import { TIPOS_CARTA, MODOS_DE_JUEGO, ETIQUETAS_MODOS, MODOS_DE_JUEGO_IMAGENES, MODOS_DE_JUEGO_LOGOS } from './config.js';
-
+import { TIPOS_CARTA, MODOS_DE_JUEGO, ETIQUETAS_MODOS, MODOS_DE_JUEGO_IMAGENES, MODOS_DE_JUEGO_LOGOS, OPCIONES_TIMER, LAST_SELECTED_MODE_KEY, LAST_SELECTED_TIMER_KEY } from './config.js';
+import { cargarConfiguracion } from './storage.js';
 // =========================================================
 // Funciones de Visibilidad y Estado del Tablero
 // =========================================================
@@ -29,6 +29,7 @@ export function mostrarBotonesInicio() {
     document.getElementById('reset-game-btn').classList.add('hidden');
     document.getElementById('share-key-btn').classList.add('hidden');
     document.getElementById('toggle-display-btn').classList.add('hidden');
+    document.getElementById('pause-timer-btn').classList.add('hidden');
     document.getElementById('game-board').innerHTML = '<div class="text-center text-gray-400 text-3xl p-10 col-span-5">Selecciona el equipo que empieza para comenzar una nueva partida.</div>';
     document.getElementById('current-turn').innerHTML = 'Esperando inicio...';
     document.querySelector('#blue-score span').textContent = '-';
@@ -38,14 +39,24 @@ export function mostrarBotonesInicio() {
 
 /**
  * Oculta los botones de inicio y muestra los controles del juego.
+ * @param {boolean} timerEnabled - Indica si el cronómetro está activo.
  */
-export function ocultarBotonesInicio() {
+export function ocultarBotonesInicio(timerEnabled = true, numTeams = 2) {
     document.getElementById('start-buttons').classList.add('hidden');
     document.getElementById('pass-turn-btn').classList.remove('hidden');
     document.getElementById('show-key-btn').classList.remove('hidden');
     document.getElementById('reset-game-btn').classList.remove('hidden');
     document.getElementById('share-key-btn').classList.remove('hidden');
     document.getElementById('toggle-display-btn').classList.remove('hidden');
+
+    const pauseTimerBtn = document.getElementById('pause-timer-btn');
+    if (timerEnabled) {
+        pauseTimerBtn.classList.remove('hidden');
+    } else {
+        pauseTimerBtn.classList.add('hidden');
+    }
+
+    toggleTimerVisibility(timerEnabled, numTeams);
 }
 
 // =========================================================
@@ -380,7 +391,49 @@ export function cargarOpcionesTema() {
     }
 
     // Asegúrate de que el modo ORIGINAL sea el seleccionado por defecto
-    selectElement.value = MODOS_DE_JUEGO.ORIGINAL;
+    // Cargar el valor guardado o usar el valor por defecto ('original')
+    const defaultMode = MODOS_DE_JUEGO.ORIGINAL;
+    const lastMode = cargarConfiguracion(LAST_SELECTED_MODE_KEY, defaultMode);
+    
+    // Seleccionar el valor guardado si es una opción válida
+    if (Array.from(selectElement.options).some(option => option.value === lastMode)) {
+        selectElement.value = lastMode;
+    } else {
+        selectElement.value = defaultMode;
+    }
+}
+
+/**
+ * Llena el menú desplegable de selección de modos.
+ */
+export function cargarOpcionesTimer() {
+    const selectElement = document.getElementById('timer-select');
+
+    if (!selectElement) {
+        console.error('ERROR UI: No se encontró el elemento #timer-select en el DOM.');
+        return;
+    }
+
+    selectElement.innerHTML = ''; // Limpiar opciones anteriores
+
+    // Iterar sobre las etiquetas legibles de los modos
+    for (const [key, label] of Object.entries(OPCIONES_TIMER)) {
+        const option = document.createElement('option');
+        option.value = key; // El valor real para game.js ('clasico', 'geografia', etc.)
+        option.textContent = label; // La etiqueta legible para el usuario
+        selectElement.appendChild(option);
+    }
+
+    // Cargar el valor guardado o usar el valor por defecto ('0')
+    const defaultTimer = 0; 
+    const lastTimer = cargarConfiguracion(LAST_SELECTED_TIMER_KEY, defaultTimer);
+    
+    // Seleccionar el valor guardado si es una opción válida
+    if (Array.from(selectElement.options).some(option => option.value === lastTimer)) {
+        selectElement.value = lastTimer;
+    } else {
+        selectElement.value = defaultTimer;
+    }
 }
 
 /**
@@ -526,5 +579,134 @@ export function actualizarVisibilidadBotonesReglaColor(currentMode) {
     } else {
         btnToggle.classList.add('hidden');
         btnNoToggle.classList.add('hidden');
+    }
+}
+
+/**
+ * Formatea segundos a MM:SS.
+ */
+function formatTime(totalSeconds) {
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+}
+
+/**
+ * Mapeo de equipo a ID de elemento HTML.
+ * ¡IMPORTANTE! Asegúrate de que estos IDs existan en tu index.html.
+ */
+const TIMER_ELEMENT_IDS = {
+    [TIPOS_CARTA.ROJO]: 'red-timer',
+    [TIPOS_CARTA.AZUL]: 'blue-timer',
+    [TIPOS_CARTA.VERDE]: 'green-timer',
+};
+
+/** Formatea y muestra el tiempo restante para un equipo.
+ * @param {string} team - El equipo (TIPOS_CARTA.AZUL/ROJO/VERDE).
+ * @param {number} segundosRestantes - El tiempo restante en segundos.
+ * @param {boolean} isEnabled - Indica si el cronómetro está activo (NUEVO).
+ */
+export function actualizarContadorUI(team, segundosRestantes, isEnabled) {
+    const elementId = TIMER_ELEMENT_IDS[team];
+    const elemento = document.getElementById(elementId);
+
+    if (!elemento) return;
+
+    // Ya no necesitamos ocultar/mostrar aquí, solo actualizar el texto
+    if (!isEnabled) {
+        elemento.textContent = 'N/A';
+        elemento.classList.remove('text-yellow-400', 'text-red-400', 'font-bold');
+        elemento.classList.add('text-gray-500');
+        return;
+    }
+
+    // Asegurar que el tiempo no sea negativo
+    const segundos = Math.max(0, segundosRestantes);
+
+    // Formatear a MM:SS
+    const minutos = Math.floor(segundos / 60);
+    const segundosFormato = segundos % 60;
+    const tiempoFormato = `${minutos.toString().padStart(2, '0')}:${segundosFormato.toString().padStart(2, '0')}`;
+
+    elemento.textContent = tiempoFormato;
+
+    // Lógica para el color (copiada de tu snippet y mejorada)
+    // 1. Resetear el estilo de todos los contadores
+    ['red-timer', 'blue-timer', 'green-timer'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.remove('text-red-400', 'text-blue-400', 'text-green-400', 'text-yellow-400', 'font-bold');
+    });
+
+    // 2. Aplicar el color de estado
+    if (segundos <= 60 && segundos > 0) {
+        // Menos de un minuto: Alerta (Amarillo)
+        elemento.classList.add('text-yellow-400', 'font-bold');
+    } else if (segundos === 0) {
+        // Tiempo agotado
+        elemento.classList.add('text-red-400', 'font-bold');
+    } else {
+        // Tiempo normal: Color por defecto (Gris)
+        elemento.classList.add('text-gray-500');
+    }
+}
+
+/**
+ * Actualiza la apariencia del botón de pausa.
+ * @param {boolean} enPausa - true si está en pausa, false si está corriendo.
+ */
+export function actualizarBotonPausa(enPausa) {
+    const btn = document.getElementById('pause-timer-btn');
+    if (!btn) return;
+
+    if (enPausa) {
+        // Estado Pausado: Botón de reanudar
+        btn.innerHTML = '▶️ Reanudar';
+        btn.classList.remove('bg-gray-700', 'hover:bg-gray-600');
+        btn.classList.add('bg-green-600', 'hover:bg-green-500');
+        //document.getElementById('game-status-text').textContent = "JUEGO PAUSADO"; // Muestra un mensaje en el estado
+        //document.getElementById('game-status-text').classList.add('text-red-500');
+    } else {
+        // Estado Corriendo: Botón de pausar
+        btn.innerHTML = '⏸️ Pausar';
+        btn.classList.remove('bg-green-600', 'hover:bg-green-500');
+        btn.classList.add('bg-gray-700', 'hover:bg-gray-600');
+        // Limpiar el mensaje de pausa si existía
+        //document.getElementById('game-status-text').textContent = ""; 
+        //document.getElementById('game-status-text').classList.remove('text-red-500');
+    }
+}
+
+/**
+ * Controla la visibilidad de los contadores de tiempo en la UI.
+ * @param {boolean} isEnabled - True para mostrar, false para ocultar (aplicar 'hidden').
+ * @param {number} numTeams - Número de equipos (para saber si ocultar el verde).
+ */
+export function toggleTimerVisibility(isEnabled, numTeams = 2) {
+    const timerElements = [
+        document.getElementById(TIMER_ELEMENT_IDS[TIPOS_CARTA.ROJO]),
+        document.getElementById(TIMER_ELEMENT_IDS[TIPOS_CARTA.AZUL]),
+    ];
+
+    if (numTeams === 3) {
+        timerElements.push(document.getElementById(TIMER_ELEMENT_IDS[TIPOS_CARTA.VERDE]));
+    }
+
+    timerElements.forEach(el => {
+        if (!el) return;
+        if (isEnabled) {
+            el.classList.remove('hidden'); // Mostrar (cronómetro activo)
+        } else {
+            el.classList.add('hidden');    // Ocultar (cronómetro inactivo)
+        }
+    });
+
+    // Ocultar el contador del tercer equipo si solo hay 2
+    const greenTimer = document.getElementById(TIMER_ELEMENT_IDS[TIPOS_CARTA.VERDE]);
+    if (greenTimer) {
+        if (numTeams === 2) {
+            greenTimer.classList.add('hidden');
+        } else if (isEnabled) {
+            greenTimer.classList.remove('hidden');
+        }
     }
 }

@@ -16,8 +16,20 @@ let paseTurnoAlFallar = true;
 let cambiarImagenesPalabras = true;
 let colorImagenes = true;
 let selectedMode = MODOS_DE_JUEGO.ORIGINAL;
+let juegoEnPausa = false;
+let timerEnabled = true
+
 const PALABRAS_MAPA = new Map(PALABRAS_SECRETAS.map(p => [p.id, p.palabra]));
 const IMAGENES_MAPA = new Map(PALABRAS_SECRETAS.map(p => [p.id, p.img]));
+
+// --- CONSTANTES DE TIEMPO ---
+const TIMER_INTERVAL_MS = 1000; // 1 segundo
+
+// Variables del Timer
+let tiempoRestanteRojo = 1;
+let tiempoRestanteAzul = 1;
+let tiempoRestanteVerde = 1;
+let timerInterval = null; // Para almacenar el ID del setInterval
 
 // =========================================================
 // Funciones Internas de Utilidad
@@ -73,6 +85,10 @@ function obtenerEstadoParaGuardar() {
         turnPassRule: localStorage.getItem(RULE_TURN_PASS_KEY),
         toggleImgRule: localStorage.getItem(RULE_TOGGLE_IMG_WORD_KEY),
         imgColorRule: localStorage.getItem(RULE_IMG_COLOR_KEY),
+        timerR: tiempoRestanteRojo,
+        timerB: tiempoRestanteAzul,
+        timerG: tiempoRestanteVerde,
+        timerEnabled: timerEnabled,
     };
 }
 
@@ -83,7 +99,7 @@ function obtenerEstadoParaGuardar() {
 /**
  * Función que encapsula toda la lógica para empezar una partida nueva.
  */
-export function startNewGame(startingTeam, numTeams, mode, reglasAplicadas) {
+export function startNewGame(startingTeam, numTeams, mode, timer, reglasAplicadas) {
     juegoTerminado = false;
     turnoActual = startingTeam;
     numeroDeEquipos = numTeams;
@@ -91,6 +107,12 @@ export function startNewGame(startingTeam, numTeams, mode, reglasAplicadas) {
     cambiarImagenesPalabras = reglasAplicadas[1];
     colorImagenes = reglasAplicadas[2];
     selectedMode = mode;
+
+    // Convertir el valor del timer de string a número. '0' es la opción sin cronómetro.
+    const timerValue = parseInt(timer, 10);
+
+    // 1. Establecer el estado del cronómetro: Si el valor es > 0, está activo.
+    timerEnabled = timerValue > 0; // -> Si timerValue es 0, timerEnabled es false
 
     const equipos = [TIPOS_CARTA.AZUL, TIPOS_CARTA.ROJO];
     if (numTeams === 3) equipos.push(TIPOS_CARTA.VERDE);
@@ -177,7 +199,21 @@ export function startNewGame(startingTeam, numTeams, mode, reglasAplicadas) {
 
     Storage.limpiarEstadoPartida(); // Limpiar el estado anterior (si existe)
 
-    UI.ocultarBotonesInicio();
+    // Inicializar contadores de tiempo
+    let tiempoTurno = timer * 60; // x minutos en segundos
+    tiempoRestanteRojo = tiempoTurno;
+    tiempoRestanteAzul = tiempoTurno;
+    tiempoRestanteVerde = tiempoTurno;
+
+    // Solo sincronizar/iniciar si está activado
+    if (timerEnabled) {
+        sincronizarContadores();
+        iniciarContador();
+    } else {
+        detenerContador();
+    }
+
+    UI.ocultarBotonesInicio(timerEnabled, numeroDeEquipos);
     recalcularEstado(tableroLogico); // <--- Esto guarda el estado
     UI.actualizarIndicadorTurno(turnoActual, juegoTerminado);
     UI.actualizarVisibilidadToggleBtn(selectedMode, cambiarImagenesPalabras);
@@ -248,9 +284,22 @@ export function passTurn() {
 
     turnoActual = nextTurn;
     UI.actualizarIndicadorTurno(turnoActual, juegoTerminado);
-    Storage.guardarEstadoPartida(obtenerEstadoParaGuardar());
-    alert (`¡Turno cambiado! Ahora es el turno del equipo ${turnoActual.toUpperCase()}.`)
+
+    // 3. VERIFICACIÓN CRUCIAL: Llamamos a la función central.
+    // Si la función verifica que el juego terminó (por tiempo global, o cualquier otra razón), 
+    // devolverá true y el código interno detendrá el contador y actualizará la UI.
+    if (verificarFinJuego()) {
+        console.log("FIN DEL JUEGO: Detectado por verificarFinJuego después de pasar el turno.");
+        return; // Detener la ejecución para evitar que se reinicie el contador
+    }
+
+    if (timerEnabled) {
+        iniciarContador();
+    }
+
+    alert(`¡Turno cambiado! Ahora es el turno del equipo ${turnoActual.toUpperCase()}.`)
     console.log(`¡Turno cambiado! Ahora es el turno del equipo ${turnoActual.toUpperCase()}.`);
+    Storage.guardarEstadoPartida(obtenerEstadoParaGuardar());
 }
 
 /**
@@ -259,16 +308,30 @@ export function passTurn() {
 function verificarFinJuego() {
     let mensaje = '';
 
-    // 1. Verificar victoria por conteo de agentes
-    if (agentesAzulesRestantes === 0) {
-        mensaje = '¡<span class="text-blue-400 font-bold">VICTORIA AZUL</span>! 🏆';
-    } else if (agentesRojosRestantes === 0) {
-        mensaje = '¡<span class="text-red-400 font-bold">VICTORIA ROJA</span>! 🏆';
-    } else if (numeroDeEquipos === 3 && agentesVerdesRestantes === 0) {
-        mensaje = '¡<span class="text-green-400 font-bold">VICTORIA VERDE</span>! 🏆';
+    // -------------------------------------------------------------------
+    // 1. NUEVA VERIFICACIÓN: FIN DE PARTIDA POR TIEMPO AGOTADO GLOBAL
+    // -------------------------------------------------------------------
+
+    if (timerEnabled) {
+        if (comprobarTiempoAgotadoGlobal()) {
+            mensaje = `¡TIEMPO AGOTADO!`;
+        }
+
     }
 
-    // 2. Verificar derrota por Asesino
+
+    // 2. Verificar victoria por conteo de agentes
+    if (!mensaje) {
+        if (agentesAzulesRestantes === 0) {
+            mensaje = '¡<span class="text-blue-400 font-bold">VICTORIA AZUL</span>! 🏆';
+        } else if (agentesRojosRestantes === 0) {
+            mensaje = '¡<span class="text-red-400 font-bold">VICTORIA ROJA</span>! 🏆';
+        } else if (numeroDeEquipos === 3 && agentesVerdesRestantes === 0) {
+            mensaje = '¡<span class="text-green-400 font-bold">VICTORIA VERDE</span>! 🏆';
+        }
+    }
+
+    // 3. Verificar derrota por Asesino
     const asesinoRevelado = tableroLogico.some(card => card.type === TIPOS_CARTA.ASESINO && card.revealed);
 
     if (asesinoRevelado) {
@@ -293,10 +356,12 @@ function verificarFinJuego() {
     }
 
     if (juegoTerminado) {
+        detenerContador();
         UI.actualizarIndicadorTurno(turnoActual, juegoTerminado, mensaje);
         Storage.limpiarEstadoPartida();
         UI.renderizarTablero(tableroLogico, handleCardClick, juegoTerminado, colorImagenes);
     }
+    return juegoTerminado;
 }
 
 // =========================================================
@@ -323,12 +388,23 @@ export function initGame() {
         juegoTerminado = estadoGuardado.terminado || false;
         numeroDeEquipos = estadoGuardado.numTeams || 2;
         selectedMode = estadoGuardado.selectedMode || MODOS_DE_JUEGO.ORIGINAL;
-        paseTurnoAlFallar = estadoGuardado.turnPassRule !== undefined ? estadoGuardado.turnPassRule : true;
-        cambiarImagenesPalabras = estadoGuardado.toggleImgRule !== undefined ? JSON.parse(estadoGuardado.toggleImgRule.toLowerCase()) : true;
-        colorImagenes = estadoGuardado.imgColorRule !== undefined ? JSON.parse(estadoGuardado.imgColorRule.toLowerCase()) : true;
-        
+        paseTurnoAlFallar = (estadoGuardado.turnPassRule !== undefined && estadoGuardado.turnPassRule !== null) ? JSON.parse(estadoGuardado.turnPassRule.toLowerCase()) : true;
+        cambiarImagenesPalabras = (estadoGuardado.toggleImgRule !== undefined && estadoGuardado.toggleImgRule !== null) ? JSON.parse(estadoGuardado.toggleImgRule.toLowerCase()) : true;
+        colorImagenes = (estadoGuardado.imgColorRule !== undefined && estadoGuardado.imgColorRule !== null) ? JSON.parse(estadoGuardado.imgColorRule.toLowerCase()) : true;
+        timerEnabled = (estadoGuardado.timerEnabled !== undefined && estadoGuardado.timerEnabled !== null) ? estadoGuardado.timerEnabled : true;
 
-        UI.ocultarBotonesInicio();
+        // --- CARGAR ESTADO DEL TIMER (NUEVO) ---
+        // Si no existe el valor guardado, se usa el valor predeterminado (15 minutos)
+        tiempoRestanteRojo = estadoGuardado.timerR !== undefined ? estadoGuardado.timerR : TIEMPO_TURNO_SEGUNDOS;
+        tiempoRestanteAzul = estadoGuardado.timerB !== undefined ? estadoGuardado.timerB : TIEMPO_TURNO_SEGUNDOS;
+        tiempoRestanteVerde = estadoGuardado.timerG !== undefined ? estadoGuardado.timerG : TIEMPO_TURNO_SEGUNDOS;
+
+        if (timerEnabled) { // NUEVO CHECK
+            sincronizarContadores(); // Muestra el tiempo restante
+            iniciarContador(); // Inicia el intervalo si no ha terminado
+        }
+
+        UI.ocultarBotonesInicio(timerEnabled, numeroDeEquipos);
         recalcularEstado(tableroLogico);
         UI.actualizarIndicadorTurno(turnoActual, juegoTerminado);
         UI.actualizarVisibilidadToggleBtn(selectedMode, cambiarImagenesPalabras);
@@ -345,6 +421,8 @@ export function initGame() {
  */
 export function reiniciarPartida() {
     if (confirm("¿Estás seguro de que quieres borrar la partida actual y volver a la pantalla de inicio?")) {
+        juegoEnPausa = false
+        detenerContador();
         Storage.limpiarEstadoPartida();
         UI.mostrarBotonesInicio();
         UI.ocultarEstadisticas();
@@ -362,11 +440,11 @@ export function generarEnlaceClave() {
         const urlToShare = `${urlBase}?clave=${encodeURIComponent(estadoCifrado)}`;
 
         // Opción 1 (Predeterminada): Mostrar Código QR
-        UI.mostrarQR(urlToShare);
+        //UI.mostrarQR(urlToShare);
 
 
         // Opción 2: Usar el viejo 'prompt' (Descomentar esta línea y comentar la línea 1)
-        //prompt("Copia y comparte este enlace con el Líder de Espías:", urlToShare);
+        prompt("Copia y comparte este enlace con el Líder de Espías:", urlToShare);
     } else {
         alert("La partida no ha comenzado o es inválida.");
     }
@@ -457,3 +535,147 @@ export function getTableroLogico() {
     return tableroLogico;
 }
 
+/**
+ * Sincroniza la Interfaz de Usuario de los contadores de tiempo 
+ * de todos los equipos con el estado interno del juego.
+ * Esto se usa al inicio de la partida o al cargarla.
+ */
+function sincronizarContadores() { // Asumiendo que existe o se añade en game.js
+    UI.actualizarContadorUI(TIPOS_CARTA.ROJO, tiempoRestanteRojo, timerEnabled); // MODIFICADO
+    UI.actualizarContadorUI(TIPOS_CARTA.AZUL, tiempoRestanteAzul, timerEnabled); // MODIFICADO
+    if (numeroDeEquipos === 3) {
+        UI.actualizarContadorUI(TIPOS_CARTA.VERDE, tiempoRestanteVerde, timerEnabled); // MODIFICADO
+    }
+}
+
+/**
+ * Detiene el contador de tiempo actual.
+ */
+function detenerContador() {
+    if (timerInterval !== null) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+        console.log('[Timer] Contador detenido.');
+    }
+}
+
+/**
+ * Inicia o reanuda el contador de tiempo para el equipo actual.
+ */
+function iniciarContador() {
+    // Si el juego está en pausa, NO inicies el contador, solo espera a que se reanude.
+    // O si el cronómetro está deshabilitado
+    if (timerInterval !== null || juegoEnPausa || juegoTerminado || !timerEnabled) { // MODIFICADO
+        if (!timerEnabled) {
+            console.log('[Timer] Cronómetro deshabilitado. No se inicia.');
+        }
+        return;
+    }
+
+    // Si ya hay un contador en marcha, primero lo detenemos para evitar duplicados
+    detenerContador();
+
+    // Solo iniciamos el contador si el juego no ha terminado
+    if (!juegoTerminado) {
+        // Establecer el intervalo
+        timerInterval = setInterval(tickTimer, TIMER_INTERVAL_MS);
+        console.log(`[Timer] Contador iniciado para el equipo ${turnoActual.toUpperCase()}.`);
+    } else {
+        console.log('[Timer] No se inicia el contador: El juego ha terminado.');
+    }
+    UI.actualizarBotonPausa(false);
+}
+
+
+/**
+ * Función que se ejecuta cada segundo para actualizar el tiempo y la UI.
+ */
+function tickTimer() {
+    let tiempoActual;
+    let equipo;
+
+    // 1. Determinar el equipo actual y reducir su tiempo
+    if (turnoActual === TIPOS_CARTA.AZUL) {
+        tiempoRestanteAzul--;
+        tiempoActual = tiempoRestanteAzul;
+        equipo = TIPOS_CARTA.AZUL;
+    } else if (turnoActual === TIPOS_CARTA.ROJO) {
+        tiempoRestanteRojo--;
+        tiempoActual = tiempoRestanteRojo;
+        equipo = TIPOS_CARTA.ROJO;
+    } else if (turnoActual === TIPOS_CARTA.VERDE && numeroDeEquipos === 3) {
+        tiempoRestanteVerde--;
+        tiempoActual = tiempoRestanteVerde;
+        equipo = TIPOS_CARTA.VERDE;
+    } else {
+        // Caso inesperado o equipo no gestionado
+        detenerContador();
+        return;
+    }
+
+    // 2. Guardar el estado cada segundo (para persistencia del contador)
+    // Esto es crucial para que el tiempo se mantenga si la página se recarga.
+    Storage.guardarEstadoPartida(obtenerEstadoParaGuardar());
+
+    // 3. Actualizar UI
+    UI.actualizarContadorUI(equipo, tiempoActual, timerEnabled);
+
+    // 4. Comprobar si el tiempo se agotó
+    if (tiempoActual <= 0) {
+        detenerContador();
+
+        // Lógica de paso de turno automático
+        alert(`¡Tiempo agotado para el equipo ${equipo.toUpperCase()}! Turno pasado.`, 'bg-gray-800 text-yellow-400');
+        console.log(`[Timer] ¡Tiempo agotado para ${equipo.toUpperCase()}!`);
+
+        // Pasamos el turno sin consumir intentos.
+        passTurn();
+
+        // El paso de turno llamará automáticamente a iniciarContador() de nuevo.
+    }
+}
+
+/**
+ * Comprueba si todos los equipos activos han agotado su tiempo total (<= 0).
+ * @returns {boolean} True si a todos los equipos activos les queda 0 tiempo.
+ */
+function comprobarTiempoAgotadoGlobal() {
+    // 1. Verificar si el equipo Rojo tiene tiempo (será true si el tiempo es 0 o menos)
+    const rojoSinTiempo = tiempoRestanteRojo <= 0;
+
+    // 2. Verificar si el equipo Azul tiene tiempo
+    const azulSinTiempo = tiempoRestanteAzul <= 0;
+
+    // 3. Verificar el equipo Verde solo si está activo (numeroDeEquipos === 3)
+    let verdeSinTiempo = true; // Asumimos true por defecto si no hay 3 equipos
+    if (numeroDeEquipos === 3) {
+        verdeSinTiempo = tiempoRestanteVerde <= 0;
+    }
+
+    return rojoSinTiempo && azulSinTiempo && verdeSinTiempo;
+}
+
+/**
+ * Alterna el estado de pausa del juego.
+ */
+export function togglePausa() {
+    // Si el juego ha terminado, no se puede pausar/reanudar
+    if (juegoTerminado) return;
+    if (!timerEnabled) return
+
+    juegoEnPausa = !juegoEnPausa; // Invertir el estado
+
+    if (juegoEnPausa) {
+        detenerContador(); // La función que ya tienes implementada
+        console.log('[Pausa] Juego pausado por el usuario.');
+    } else {
+        iniciarContador(); // La función que ya tienes implementada
+        console.log('[Pausa] Juego reanudado.');
+    }
+
+    // Actualizar la interfaz de usuario (el botón y el mensaje)
+    UI.actualizarBotonPausa(juegoEnPausa);
+
+    // Guardar el estado de pausa (opcional, pero recomendado)
+    Storage.guardarEstadoPartida(obtenerEstadoParaGuardar());
+}
