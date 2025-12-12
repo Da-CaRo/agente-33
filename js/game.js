@@ -395,9 +395,9 @@ export function initGame() {
 
         // --- CARGAR ESTADO DEL TIMER (NUEVO) ---
         // Si no existe el valor guardado, se usa el valor predeterminado (15 minutos)
-        tiempoRestanteRojo = estadoGuardado.timerR !== undefined ? estadoGuardado.timerR : TIEMPO_TURNO_SEGUNDOS;
-        tiempoRestanteAzul = estadoGuardado.timerB !== undefined ? estadoGuardado.timerB : TIEMPO_TURNO_SEGUNDOS;
-        tiempoRestanteVerde = estadoGuardado.timerG !== undefined ? estadoGuardado.timerG : TIEMPO_TURNO_SEGUNDOS;
+        tiempoRestanteRojo = estadoGuardado.timerR !== undefined ? estadoGuardado.timerR : 15;
+        tiempoRestanteAzul = estadoGuardado.timerB !== undefined ? estadoGuardado.timerB : 15;
+        tiempoRestanteVerde = estadoGuardado.timerG !== undefined ? estadoGuardado.timerG : 15;
 
         if (timerEnabled) { // NUEVO CHECK
             sincronizarContadores(); // Muestra el tiempo restante
