@@ -272,16 +272,19 @@
                         class="w-24 h-24 flex flex-col justify-center items-center text-blue-400 border-2 border-blue-600 p-1 rounded-lg bg-tarjeta text-sm">
                         🔵 Azules
                         <span class="font-bold text-3xl">-</span>
+                        <div id="blue-timer" class="text-base text-gray-500 font-mono mt-1">-</div>
                     </div>
                     <div id="red-score"
                         class="w-24 h-24 flex flex-col justify-center items-center text-red-400 border-2 border-red-600 p-1 rounded-lg bg-tarjeta text-sm">
                         🔴 Rojos
                         <span class="font-bold text-3xl">-</span>
+                        <div id="red-timer" class="text-base text-gray-500 font-mono mt-1">-</div>
                     </div>
                     <div id="green-score"
                         class="w-24 h-24 flex flex-col justify-center items-center text-green-400 border-2 border-green-600 p-1 rounded-lg bg-tarjeta hidden text-sm">
                         🟢 Verdes
                         <span class="font-bold text-3xl">-</span>
+                        <div id="green-timer" class="text-base text-gray-500 font-mono mt-1">-</div>
                     </div>
                 </div>
 
@@ -311,9 +314,15 @@
                         title="Alternar entre palabras e imágenes">
                         🔠 Mostrar Palabras
                     </button>
+                    <button id="pause-timer-btn"
+                        class="py-3 px-2 bg-gray-700 hover:bg-gray-600 text-acento font-bold rounded-full transition duration-150 flex items-center justify-center text-sm disabled:opacity-50 hidden"
+                        title="Pausar el cronómetro">
+                        ⏸️ Pausar
+                    </button>
 
                     <button id="pass-turn-btn"
-                        class="bg-yellow-500 hover:bg-yellow-4  00 text-skip font-bold py-3 px-4 rounded-full transition duration-150 text-lg shadow-lg disabled:opacity-50 hidden w-full">
+                        class="bg-yellow-500 hover:bg-yellow-4  00 text-skip font-bold py-3 px-4 rounded-full transition duration-150 text-lg shadow-lg disabled:opacity-50 hidden w-full"
+                        title="Pasar el turno">
                         Pasar Turno
                     </button>
                 </div>
@@ -373,6 +382,8 @@
             document.getElementById('reset-game-btn').addEventListener('click', Game.reiniciarPartida);
             document.getElementById('share-key-btn').addEventListener('click', Game.generarEnlaceClave);
             document.getElementById('toggle-display-btn').addEventListener('click', Game.reRenderBoard);
+            document.getElementById('pause-timer-btn').addEventListener('click', Game.togglePausa);
+            
 
             // 1. VERIFICAR SI HAY UNA CLAVE EN LA URL (LÍDER DE ESPÍAS)
             if (claveUrl) {
