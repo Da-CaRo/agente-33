@@ -7,6 +7,8 @@ export const GAME_STATE_STORAGE_KEY = 'agente33_estadoActual';
 export const RULE_TURN_PASS_KEY = 'agente33_reglaPaseTurno';
 export const RULE_TOGGLE_IMG_WORD_KEY = 'agente33_reglaCambioImagen';
 export const RULE_IMG_COLOR_KEY = 'agente33_reglaColorImagen';
+export const LAST_SELECTED_MODE_KEY = 'agente33_ultimoModo';
+export const LAST_SELECTED_TIMER_KEY = 'agente33_ultimoTimer';
 
 // Mapeo de tipos de cartas y códigos de codificación
 export const TIPOS_CARTA = {
@@ -163,6 +165,7 @@ export const MODOS_DE_JUEGO_LOGOS = [
 ]
 
 export const OPCIONES_TIMER = {
+    0: 'Sin Cronómetro',
     2: '2 Minutos',
     5: '5 Minutos',
     10: '10 Minutos',

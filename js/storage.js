@@ -1,4 +1,4 @@
-import { ENCRYPTION_KEY, GAME_STATE_STORAGE_KEY, USADAS_STORAGE_KEY, RULE_TURN_PASS_KEY, RULE_IMG_COLOR_KEY } from './config.js';
+import { ENCRYPTION_KEY, GAME_STATE_STORAGE_KEY, USADAS_STORAGE_KEY, RULE_TURN_PASS_KEY, RULE_IMG_COLOR_KEY, LAST_SELECTED_MODE_KEY, LAST_SELECTED_TIMER_KEY } from './config.js';
 
 // =========================================================
 // Funciones de Cifrado XOR
@@ -94,6 +94,25 @@ export function limpiarEstadoPartida() {
     console.log("Estado guardado borrado.");
 }
 
+/**
+ * Guarda un valor de configuración simple en localStorage.
+ * @param {string} key - La clave de almacenamiento (p.ej., LAST_SELECTED_MODE_KEY).
+ * @param {string} value - El valor a guardar.
+ */
+export function guardarConfiguracion(key, value) {
+    localStorage.setItem(key, value);
+}
+
+/**
+ * Carga un valor de configuración simple de localStorage.
+ * @param {string} key - La clave de almacenamiento.
+ * @param {string} defaultValue - Valor por defecto si no se encuentra.
+ * @returns {string} El valor cargado o el valor por defecto.
+ */
+export function cargarConfiguracion(key, defaultValue) {
+    return localStorage.getItem(key) || defaultValue;
+}
+
 // =========================================================
 // Funciones de Palabras Usadas
 // =========================================================
@@ -160,5 +179,7 @@ export function limpiarTodasVariables() {
     localStorage.removeItem(RULE_TURN_PASS_KEY);
     localStorage.removeItem(RULE_TOGGLE_IMG_WORD_KEY);
     localStorage.removeItem(RULE_IMG_COLOR_KEY);
+    localStorage.removeItem(LAST_SELECTED_MODE_KEY);
+    localStorage.removeItem(LAST_SELECTED_TIMER_KEY);
     console.log("✅ Todas las variables de juego han sido borradas");
 }

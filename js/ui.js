@@ -1,5 +1,5 @@
-import { TIPOS_CARTA, MODOS_DE_JUEGO, ETIQUETAS_MODOS, MODOS_DE_JUEGO_IMAGENES, MODOS_DE_JUEGO_LOGOS, OPCIONES_TIMER } from './config.js';
-
+import { TIPOS_CARTA, MODOS_DE_JUEGO, ETIQUETAS_MODOS, MODOS_DE_JUEGO_IMAGENES, MODOS_DE_JUEGO_LOGOS, OPCIONES_TIMER, LAST_SELECTED_MODE_KEY, LAST_SELECTED_TIMER_KEY } from './config.js';
+import { cargarConfiguracion } from './storage.js';
 // =========================================================
 // Funciones de Visibilidad y Estado del Tablero
 // =========================================================
@@ -39,15 +39,24 @@ export function mostrarBotonesInicio() {
 
 /**
  * Oculta los botones de inicio y muestra los controles del juego.
+ * @param {boolean} timerEnabled - Indica si el cronómetro está activo.
  */
-export function ocultarBotonesInicio() {
+export function ocultarBotonesInicio(timerEnabled = true, numTeams = 2) {
     document.getElementById('start-buttons').classList.add('hidden');
     document.getElementById('pass-turn-btn').classList.remove('hidden');
     document.getElementById('show-key-btn').classList.remove('hidden');
     document.getElementById('reset-game-btn').classList.remove('hidden');
     document.getElementById('share-key-btn').classList.remove('hidden');
     document.getElementById('toggle-display-btn').classList.remove('hidden');
-    document.getElementById('pause-timer-btn').classList.remove('hidden');
+
+    const pauseTimerBtn = document.getElementById('pause-timer-btn');
+    if (timerEnabled) {
+        pauseTimerBtn.classList.remove('hidden');
+    } else {
+        pauseTimerBtn.classList.add('hidden');
+    }
+
+    toggleTimerVisibility(timerEnabled, numTeams);
 }
 
 // =========================================================
@@ -382,7 +391,16 @@ export function cargarOpcionesTema() {
     }
 
     // Asegúrate de que el modo ORIGINAL sea el seleccionado por defecto
-    selectElement.value = MODOS_DE_JUEGO.ORIGINAL;
+    // Cargar el valor guardado o usar el valor por defecto ('original')
+    const defaultMode = MODOS_DE_JUEGO.ORIGINAL;
+    const lastMode = cargarConfiguracion(LAST_SELECTED_MODE_KEY, defaultMode);
+    
+    // Seleccionar el valor guardado si es una opción válida
+    if (Array.from(selectElement.options).some(option => option.value === lastMode)) {
+        selectElement.value = lastMode;
+    } else {
+        selectElement.value = defaultMode;
+    }
 }
 
 /**
@@ -406,8 +424,16 @@ export function cargarOpcionesTimer() {
         selectElement.appendChild(option);
     }
 
-    // Asegúrate de que el modo 5 Minutos sea el seleccionado por defecto
-    selectElement.value = 5;
+    // Cargar el valor guardado o usar el valor por defecto ('0')
+    const defaultTimer = 0; 
+    const lastTimer = cargarConfiguracion(LAST_SELECTED_TIMER_KEY, defaultTimer);
+    
+    // Seleccionar el valor guardado si es una opción válida
+    if (Array.from(selectElement.options).some(option => option.value === lastTimer)) {
+        selectElement.value = lastTimer;
+    } else {
+        selectElement.value = defaultTimer;
+    }
 }
 
 /**
@@ -575,16 +601,24 @@ const TIMER_ELEMENT_IDS = {
     [TIPOS_CARTA.VERDE]: 'green-timer',
 };
 
-/**
- * Actualiza la visualización del contador de tiempo para un equipo.
+/** Formatea y muestra el tiempo restante para un equipo.
  * @param {string} team - El equipo (TIPOS_CARTA.AZUL/ROJO/VERDE).
  * @param {number} segundosRestantes - El tiempo restante en segundos.
+ * @param {boolean} isEnabled - Indica si el cronómetro está activo (NUEVO).
  */
-export function actualizarContadorUI(team, segundosRestantes) {
+export function actualizarContadorUI(team, segundosRestantes, isEnabled) {
     const elementId = TIMER_ELEMENT_IDS[team];
     const elemento = document.getElementById(elementId);
 
     if (!elemento) return;
+
+    // Ya no necesitamos ocultar/mostrar aquí, solo actualizar el texto
+    if (!isEnabled) {
+        elemento.textContent = 'N/A';
+        elemento.classList.remove('text-yellow-400', 'text-red-400', 'font-bold');
+        elemento.classList.add('text-gray-500');
+        return;
+    }
 
     // Asegurar que el tiempo no sea negativo
     const segundos = Math.max(0, segundosRestantes);
@@ -639,5 +673,40 @@ export function actualizarBotonPausa(enPausa) {
         // Limpiar el mensaje de pausa si existía
         //document.getElementById('game-status-text').textContent = ""; 
         //document.getElementById('game-status-text').classList.remove('text-red-500');
+    }
+}
+
+/**
+ * Controla la visibilidad de los contadores de tiempo en la UI.
+ * @param {boolean} isEnabled - True para mostrar, false para ocultar (aplicar 'hidden').
+ * @param {number} numTeams - Número de equipos (para saber si ocultar el verde).
+ */
+export function toggleTimerVisibility(isEnabled, numTeams = 2) {
+    const timerElements = [
+        document.getElementById(TIMER_ELEMENT_IDS[TIPOS_CARTA.ROJO]),
+        document.getElementById(TIMER_ELEMENT_IDS[TIPOS_CARTA.AZUL]),
+    ];
+
+    if (numTeams === 3) {
+        timerElements.push(document.getElementById(TIMER_ELEMENT_IDS[TIPOS_CARTA.VERDE]));
+    }
+
+    timerElements.forEach(el => {
+        if (!el) return;
+        if (isEnabled) {
+            el.classList.remove('hidden'); // Mostrar (cronómetro activo)
+        } else {
+            el.classList.add('hidden');    // Ocultar (cronómetro inactivo)
+        }
+    });
+
+    // Ocultar el contador del tercer equipo si solo hay 2
+    const greenTimer = document.getElementById(TIMER_ELEMENT_IDS[TIPOS_CARTA.VERDE]);
+    if (greenTimer) {
+        if (numTeams === 2) {
+            greenTimer.classList.add('hidden');
+        } else if (isEnabled) {
+            greenTimer.classList.remove('hidden');
+        }
     }
 }

@@ -156,8 +156,8 @@
                     <div
                         class="bg-tarjeta p-6 rounded-lg shadow-xl border border-gray-700 border-acento hover-acento transition duration-300 h-full flex flex-col justify-between">
                         <div>
-                            <span class="text-acento text-4xl mb-3 block">⚙️</span>
-                            <h3 class="text-2xl font-bold mb-2 text-gray-100 font-code">Configuración</h3>
+                            <span class="text-acento text-4xl mb-3 block">🗂️</span>
+                            <h3 class="text-2xl font-bold mb-2 text-gray-100 font-code">Misiones</h3>
                             <p class="text-texto-gris text-base">
                             <div class="flex flex-col space-y-2 mb-4">
                                 <select id="mode-select"
@@ -167,6 +167,20 @@
                                     class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded transition duration-150">
                                 </select>
                             </div>
+                            </p>
+                        </div>
+                        <a href="https://da-caro.github.io/game-guides/agente-33.html" target="_blank" class="block">
+                            <span class="mt-5 inline-block text-sm font-medium text-acento hover:underline">Ver
+                                Instrucciones →</span></a>
+                    </div>
+
+                    <div
+                        class="bg-tarjeta p-6 rounded-lg shadow-xl border border-gray-700 border-acento hover-acento transition duration-300 h-full flex flex-col justify-between">
+                        <div>
+                            <span class="text-acento text-4xl mb-3 block">⚙️</span>
+                            <h3 class="text-2xl font-bold mb-2 text-gray-100 font-code">Configuración</h3>
+                            <p class="text-texto-gris text-base">
+
                             <div id="turn-pass-rule" class="flex justify-center space-x-4 mb-4 text-center">
                                 <button id="rule-pass-on-miss"
                                     class="flex-1 py-2 px-4 rounded-lg font-bold transition duration-150 border-2 border-transparent">
@@ -199,12 +213,9 @@
                                     Tinta Negra <!--⬛-->
                                 </button>
                             </div>
-
                             </p>
                         </div>
-                        <a href="https://da-caro.github.io/game-guides/agente-33.html" target="_blank" class="block">
-                            <span class="mt-5 inline-block text-sm font-medium text-acento hover:underline">Ver
-                                Instrucciones →</span></a>
+
                     </div>
 
                     <div
@@ -366,7 +377,7 @@
         import { TIPOS_CARTA } from './js/config.js';
         import * as Game from './js/game.js';
         import * as UI from './js/ui.js';
-        import { RULE_TURN_PASS_KEY, RULE_TOGGLE_IMG_WORD_KEY, RULE_IMG_COLOR_KEY } from './js/config.js';
+        import { RULE_TURN_PASS_KEY, RULE_TOGGLE_IMG_WORD_KEY, RULE_IMG_COLOR_KEY, LAST_SELECTED_MODE_KEY, LAST_SELECTED_TIMER_KEY } from './js/config.js';
         import * as Storage from './js/storage.js'
 
         // --- ESTADO LOCAL DE REGLAS ---
@@ -522,16 +533,28 @@
                 Game.startNewGame(randomTeam, 3, selectedMode, selectedTimer, [paseTurnoAlFallar, cambiarImagenesPalabras, colorImagenes]); // 3 Equipos
             });
 
+
+
             const modeSelect = document.getElementById('mode-select');
+            const timerSelect = document.getElementById('timer-select');
+
             // Llamar al cargar la página con el valor inicial
             UI.actualizarVisibilidadBotonesReglaImagenes(modeSelect.value);
             UI.actualizarVisibilidadBotonesReglaColor(modeSelect.value);
 
-            // Llamar cada vez que el valor cambie
-            modeSelect.addEventListener('change', (event) => {
-                const newMode = event.target.value;
+            // 2. Event Listeners para guardar configuración al cambiar (NUEVO)
+            modeSelect.addEventListener('change', (e) => {
+                const newMode = e.target.value;
                 UI.actualizarVisibilidadBotonesReglaImagenes(newMode);
                 UI.actualizarVisibilidadBotonesReglaColor(modeSelect.value);
+                Storage.guardarConfiguracion(LAST_SELECTED_MODE_KEY, e.target.value);
+                console.log(`Modo guardado: ${e.target.value}`);
+            });
+
+            timerSelect.addEventListener('change', (e) => {
+
+                Storage.guardarConfiguracion(LAST_SELECTED_TIMER_KEY, e.target.value);
+                console.log(`Timer guardado: ${e.target.value}`);
             });
 
 
