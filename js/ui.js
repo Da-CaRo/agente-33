@@ -1,4 +1,4 @@
-import { TIPOS_CARTA, MODOS_DE_JUEGO, ETIQUETAS_MODOS, MODOS_DE_JUEGO_IMAGENES, MODOS_DE_JUEGO_LOGOS } from './config.js';
+import { TIPOS_CARTA, MODOS_DE_JUEGO, ETIQUETAS_MODOS, MODOS_DE_JUEGO_IMAGENES, MODOS_DE_JUEGO_LOGOS, OPCIONES_TIMER } from './config.js';
 
 // =========================================================
 // Funciones de Visibilidad y Estado del Tablero
@@ -386,6 +386,31 @@ export function cargarOpcionesTema() {
 }
 
 /**
+ * Llena el menú desplegable de selección de modos.
+ */
+export function cargarOpcionesTimer() {
+    const selectElement = document.getElementById('timer-select');
+
+    if (!selectElement) {
+        console.error('ERROR UI: No se encontró el elemento #timer-select en el DOM.');
+        return;
+    }
+
+    selectElement.innerHTML = ''; // Limpiar opciones anteriores
+
+    // Iterar sobre las etiquetas legibles de los modos
+    for (const [key, label] of Object.entries(OPCIONES_TIMER)) {
+        const option = document.createElement('option');
+        option.value = key; // El valor real para game.js ('clasico', 'geografia', etc.)
+        option.textContent = label; // La etiqueta legible para el usuario
+        selectElement.appendChild(option);
+    }
+
+    // Asegúrate de que el modo 5 Minutos sea el seleccionado por defecto
+    selectElement.value = 5;
+}
+
+/**
  * Actualiza el estado visual de los botones de regla según la opción seleccionada.
  * @param {boolean} sePasaTurno - Indica si el turno pasa al fallar.
  */
@@ -563,12 +588,12 @@ export function actualizarContadorUI(team, segundosRestantes) {
 
     // Asegurar que el tiempo no sea negativo
     const segundos = Math.max(0, segundosRestantes);
-    
+
     // Formatear a MM:SS
     const minutos = Math.floor(segundos / 60);
     const segundosFormato = segundos % 60;
     const tiempoFormato = `${minutos.toString().padStart(2, '0')}:${segundosFormato.toString().padStart(2, '0')}`;
-    
+
     elemento.textContent = tiempoFormato;
 
     // Lógica para el color (copiada de tu snippet y mejorada)
@@ -587,7 +612,7 @@ export function actualizarContadorUI(team, segundosRestantes) {
         elemento.classList.add('text-red-400', 'font-bold');
     } else {
         // Tiempo normal: Color por defecto (Gris)
-        elemento.classList.add('text-gray-500'); 
+        elemento.classList.add('text-gray-500');
     }
 }
 

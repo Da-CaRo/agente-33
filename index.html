@@ -163,6 +163,9 @@
                                 <select id="mode-select"
                                     class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded transition duration-150">
                                 </select>
+                                <select id="timer-select"
+                                    class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded transition duration-150">
+                                </select>
                             </div>
                             <div id="turn-pass-rule" class="flex justify-center space-x-4 mb-4 text-center">
                                 <button id="rule-pass-on-miss"
@@ -383,7 +386,6 @@
             document.getElementById('share-key-btn').addEventListener('click', Game.generarEnlaceClave);
             document.getElementById('toggle-display-btn').addEventListener('click', Game.reRenderBoard);
             document.getElementById('pause-timer-btn').addEventListener('click', Game.togglePausa);
-            
 
             // 1. VERIFICAR SI HAY UNA CLAVE EN LA URL (LÍDER DE ESPÍAS)
             if (claveUrl) {
@@ -424,6 +426,7 @@
             UI.actualizarBotonReglaImagen(cambiarImagenesPalabras);
             UI.actualizarBotonReglaColor(colorImagenes);
             UI.cargarOpcionesTema();
+            UI.cargarOpcionesTimer();
 
             // --- Manejadores de botones de reglas ---
             document.getElementById('rule-pass-on-miss').addEventListener('click', () => {
@@ -468,20 +471,23 @@
                 UI.mostrarEstadisticas();
                 UI.mostrarTablero();
                 const selectedMode = document.getElementById('mode-select').value;
-                Game.startNewGame(TIPOS_CARTA.AZUL, 2, selectedMode, [paseTurnoAlFallar, cambiarImagenesPalabras, colorImagenes]); // 2 Equipos
+                const selectedTimer = document.getElementById('timer-select').value;
+                Game.startNewGame(TIPOS_CARTA.AZUL, 2, selectedMode, selectedTimer, [paseTurnoAlFallar, cambiarImagenesPalabras, colorImagenes]); // 2 Equipos
             });
             document.getElementById('start-red-btn-2').addEventListener('click', () => {
                 UI.mostrarEstadisticas();
                 UI.mostrarTablero();
                 const selectedMode = document.getElementById('mode-select').value;
-                Game.startNewGame(TIPOS_CARTA.ROJO, 2, selectedMode, [paseTurnoAlFallar, cambiarImagenesPalabras, colorImagenes]); // 2 Equipos
+                const selectedTimer = document.getElementById('timer-select').value;
+                Game.startNewGame(TIPOS_CARTA.ROJO, 2, selectedMode, selectedTimer, [paseTurnoAlFallar, cambiarImagenesPalabras, colorImagenes]); // 2 Equipos
             });
             document.getElementById('start-random-btn-2').addEventListener('click', () => {
                 UI.mostrarEstadisticas();
                 UI.mostrarTablero();
                 const selectedMode = document.getElementById('mode-select').value;
+                const selectedTimer = document.getElementById('timer-select').value;
                 const randomTeam = Math.random() < 0.5 ? TIPOS_CARTA.AZUL : TIPOS_CARTA.ROJO;
-                Game.startNewGame(randomTeam, 2, selectedMode, [paseTurnoAlFallar, cambiarImagenesPalabras, colorImagenes]); // 2 Equipos
+                Game.startNewGame(randomTeam, 2, selectedMode, selectedTimer, [paseTurnoAlFallar, cambiarImagenesPalabras, colorImagenes]); // 2 Equipos
             });
 
             // Iniciar juego en MODO 3 EQUIPOS
@@ -489,27 +495,31 @@
                 UI.mostrarEstadisticas();
                 UI.mostrarTablero();
                 const selectedMode = document.getElementById('mode-select').value;
-                Game.startNewGame(TIPOS_CARTA.AZUL, 3, selectedMode, [paseTurnoAlFallar, cambiarImagenesPalabras, colorImagenes]); // 3 Equipos
+                const selectedTimer = document.getElementById('timer-select').value;
+                Game.startNewGame(TIPOS_CARTA.AZUL, 3, selectedMode, selectedTimer, [paseTurnoAlFallar, cambiarImagenesPalabras, colorImagenes]); // 3 Equipos
             });
             document.getElementById('start-red-btn-3').addEventListener('click', () => {
                 UI.mostrarEstadisticas();
                 UI.mostrarTablero();
                 const selectedMode = document.getElementById('mode-select').value;
-                Game.startNewGame(TIPOS_CARTA.ROJO, 3, selectedMode, [paseTurnoAlFallar, cambiarImagenesPalabras, colorImagenes]); // 3 Equipos
+                const selectedTimer = document.getElementById('timer-select').value;
+                Game.startNewGame(TIPOS_CARTA.ROJO, 3, selectedMode, selectedTimer, [paseTurnoAlFallar, cambiarImagenesPalabras, colorImagenes]); // 3 Equipos
             });
             document.getElementById('start-green-btn-3').addEventListener('click', () => {
                 UI.mostrarEstadisticas();
                 UI.mostrarTablero();
                 const selectedMode = document.getElementById('mode-select').value;
-                Game.startNewGame(TIPOS_CARTA.VERDE, 3, selectedMode, [paseTurnoAlFallar, cambiarImagenesPalabras, colorImagenes]); // 3 Equipos
+                const selectedTimer = document.getElementById('timer-select').value;
+                Game.startNewGame(TIPOS_CARTA.VERDE, 3, selectedMode, selectedTimer, [paseTurnoAlFallar, cambiarImagenesPalabras, colorImagenes]); // 3 Equipos
             });
             document.getElementById('start-random-btn-3').addEventListener('click', () => {
                 UI.mostrarEstadisticas();
                 UI.mostrarTablero();
                 const selectedMode = document.getElementById('mode-select').value;
+                const selectedTimer = document.getElementById('timer-select').value;
                 const teams = [TIPOS_CARTA.AZUL, TIPOS_CARTA.ROJO, TIPOS_CARTA.VERDE];
                 const randomTeam = teams[Math.floor(Math.random() * teams.length)];
-                Game.startNewGame(randomTeam, 3, selectedMode, [paseTurnoAlFallar, cambiarImagenesPalabras, colorImagenes]); // 3 Equipos
+                Game.startNewGame(randomTeam, 3, selectedMode, selectedTimer, [paseTurnoAlFallar, cambiarImagenesPalabras, colorImagenes]); // 3 Equipos
             });
 
             const modeSelect = document.getElementById('mode-select');

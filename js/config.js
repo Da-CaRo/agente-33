@@ -119,7 +119,7 @@ export const ETIQUETAS_MODOS = {
     [MODOS_DE_JUEGO.BANDERAS_EUROPA]: 'Misión: Sector Europa',
     [MODOS_DE_JUEGO.BANDERAS_OCEANIA]: 'Misión: Sector Oceanía',
 
-    
+
 };
 
 export const MODO_A_CATEGORIAS = {
@@ -143,7 +143,7 @@ export const MODO_A_CATEGORIAS = {
     [MODOS_DE_JUEGO.BANDERAS_ASIA]: [ETIQUETAS.BANDERAS_ASIA],
     [MODOS_DE_JUEGO.BANDERAS_EUROPA]: [ETIQUETAS.BANDERAS_EUROPA],
     [MODOS_DE_JUEGO.BANDERAS_OCEANIA]: [ETIQUETAS.BANDERAS_OCEANIA],
-    
+
 };
 
 export const MODOS_DE_JUEGO_IMAGENES = [
@@ -161,3 +161,10 @@ export const MODOS_DE_JUEGO_IMAGENES = [
 export const MODOS_DE_JUEGO_LOGOS = [
     MODOS_DE_JUEGO.MARCAS,
 ]
+
+export const OPCIONES_TIMER = {
+    2: '2 Minutos',
+    5: '5 Minutos',
+    10: '10 Minutos',
+    15: '15 Minutos',
+}

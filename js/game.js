@@ -22,13 +22,12 @@ const PALABRAS_MAPA = new Map(PALABRAS_SECRETAS.map(p => [p.id, p.palabra]));
 const IMAGENES_MAPA = new Map(PALABRAS_SECRETAS.map(p => [p.id, p.img]));
 
 // --- CONSTANTES DE TIEMPO ---
-const TIEMPO_TURNO_SEGUNDOS = 10; // 15 minutos en segundos 15 * 60
 const TIMER_INTERVAL_MS = 1000; // 1 segundo
 
 // Variables del Timer
-let tiempoRestanteRojo = TIEMPO_TURNO_SEGUNDOS;
-let tiempoRestanteAzul = TIEMPO_TURNO_SEGUNDOS;
-let tiempoRestanteVerde = TIEMPO_TURNO_SEGUNDOS;
+let tiempoRestanteRojo = 1;
+let tiempoRestanteAzul = 1;
+let tiempoRestanteVerde = 1;
 let timerInterval = null; // Para almacenar el ID del setInterval
 
 // =========================================================
@@ -98,7 +97,7 @@ function obtenerEstadoParaGuardar() {
 /**
  * Función que encapsula toda la lógica para empezar una partida nueva.
  */
-export function startNewGame(startingTeam, numTeams, mode, reglasAplicadas) {
+export function startNewGame(startingTeam, numTeams, mode, timer, reglasAplicadas) {
     juegoTerminado = false;
     turnoActual = startingTeam;
     numeroDeEquipos = numTeams;
@@ -193,9 +192,10 @@ export function startNewGame(startingTeam, numTeams, mode, reglasAplicadas) {
     Storage.limpiarEstadoPartida(); // Limpiar el estado anterior (si existe)
 
     // Inicializar contadores de tiempo
-    tiempoRestanteRojo = TIEMPO_TURNO_SEGUNDOS;
-    tiempoRestanteAzul = TIEMPO_TURNO_SEGUNDOS;
-    tiempoRestanteVerde = TIEMPO_TURNO_SEGUNDOS;
+    let tiempoTurno = timer * 60; // x minutos en segundos
+    tiempoRestanteRojo = tiempoTurno;
+    tiempoRestanteAzul = tiempoTurno;
+    tiempoRestanteVerde = tiempoTurno;
 
     sincronizarContadores();
     iniciarContador();
@@ -420,11 +420,11 @@ export function generarEnlaceClave() {
         const urlToShare = `${urlBase}?clave=${encodeURIComponent(estadoCifrado)}`;
 
         // Opción 1 (Predeterminada): Mostrar Código QR
-        UI.mostrarQR(urlToShare);
+        //UI.mostrarQR(urlToShare);
 
 
         // Opción 2: Usar el viejo 'prompt' (Descomentar esta línea y comentar la línea 1)
-        //prompt("Copia y comparte este enlace con el Líder de Espías:", urlToShare);
+        prompt("Copia y comparte este enlace con el Líder de Espías:", urlToShare);
     } else {
         alert("La partida no ha comenzado o es inválida.");
     }
