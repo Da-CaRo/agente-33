@@ -440,11 +440,11 @@ export function generarEnlaceClave() {
         const urlToShare = `${urlBase}?clave=${encodeURIComponent(estadoCifrado)}`;
 
         // Opción 1 (Predeterminada): Mostrar Código QR
-        //UI.mostrarQR(urlToShare);
+        UI.mostrarQR(urlToShare);
 
 
         // Opción 2: Usar el viejo 'prompt' (Descomentar esta línea y comentar la línea 1)
-        prompt("Copia y comparte este enlace con el Líder de Espías:", urlToShare);
+        //prompt("Copia y comparte este enlace con el Líder de Espías:", urlToShare);
     } else {
         alert("La partida no ha comenzado o es inválida.");
     }
@@ -482,14 +482,14 @@ export function mostrarClaveSecretaURL(cadenaCifrada) {
             };
         });
 
-        numeroDeEquipos = tableroLogico.some(card => card.type === TIPOS_CARTA.VERDE) ? 3 : 2;
-        paseTurnoAlFallar = estadoPartida.turnPassRule !== undefined ? estadoPartida.turnPassRule : true;
-        cambiarImagenesPalabras = estadoPartida.toggleImgRule !== undefined ? JSON.parse(estadoPartida.toggleImgRule.toLowerCase()) : true;
-        colorImagenes = estadoPartida.imgColorRule !== undefined ? JSON.parse(estadoPartida.imgColorRule.toLowerCase()) : true;
+        numeroDeEquipos = estadoPartida.numTeams || 2;
         selectedMode = estadoPartida.selectedMode || MODOS_DE_JUEGO.ORIGINAL;
+        paseTurnoAlFallar = (estadoPartida.turnPassRule !== undefined && estadoPartida.turnPassRule !== null) ? JSON.parse(estadoPartida.turnPassRule.toLowerCase()) : true;
+        cambiarImagenesPalabras = (estadoPartida.toggleImgRule !== undefined && estadoPartida.toggleImgRule !== null) ? JSON.parse(estadoPartida.toggleImgRule.toLowerCase()) : true;
+        colorImagenes = (estadoPartida.imgColorRule !== undefined && estadoPartida.imgColorRule !== null) ? JSON.parse(estadoPartida.imgColorRule.toLowerCase()) : true;
 
         UI.setInitialDisplayMode(selectedMode);
-        UI.ocultarBotonesInicio();
+        UI.ocultarBotonesInicio(false, numeroDeEquipos);
         UI.actualizarUIModoLider(tableroLogico, colorImagenes);
         UI.actualizarVisibilidadToggleBtn(estadoPartida.selectedMode, cambiarImagenesPalabras);
 
