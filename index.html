@@ -130,7 +130,7 @@
                 </h1>
             </div>
             <div id="current-turn"
-                class="bg-tarjeta p-2 rounded-lg text-acento whitespace-nowrap text-lg font-bold absolute top-1/2 -translate-y-1/2 right-4">
+                class="bg-tarjeta p-2 rounded-lg text-acento whitespace-nowrap text-lg font-bold absolute top-1/2 -translate-y-1/2 right-4 hidden md:block">
                 Esperando inicio...
             </div>
         </div>
@@ -172,50 +172,6 @@
                         <a href="https://da-caro.github.io/game-guides/agente-33.html" target="_blank" class="block">
                             <span class="mt-5 inline-block text-sm font-medium text-acento hover:underline">Ver
                                 Instrucciones →</span></a>
-                    </div>
-
-                    <div
-                        class="bg-tarjeta p-6 rounded-lg shadow-xl border border-gray-700 border-acento hover-acento transition duration-300 h-full flex flex-col justify-between">
-                        <div>
-                            <span class="text-acento text-4xl mb-3 block">⚙️</span>
-                            <h3 class="text-2xl font-bold mb-2 text-gray-100 font-code">Configuración</h3>
-                            <p class="text-texto-gris text-base">
-
-                            <div id="turn-pass-rule" class="flex justify-center space-x-4 mb-4 text-center">
-                                <button id="rule-pass-on-miss"
-                                    class="flex-1 py-2 px-4 rounded-lg font-bold transition duration-150 border-2 border-transparent">
-                                    Paso Táctico
-                                </button>
-                                <button id="rule-no-pass-on-miss"
-                                    class="flex-1 py-2 px-4 rounded-lg font-bold transition duration-150 border-2 border-transparent">
-                                    Ataque Continuo
-                                </button>
-                            </div>
-
-                            <div id="toggle-img-rule" class="flex justify-center space-x-4 mb-4 text-center">
-                                <button id="rule-no-toggle-img-word"
-                                    class="flex-1 py-2 px-4 rounded-lg font-bold transition duration-150 border-2 border-transparent">
-                                    Identidad Fija <!--🖼️-->
-                                </button>
-                                <button id="rule-toggle-img-word"
-                                    class="flex-1 py-2 px-4 rounded-lg font-bold transition duration-150 border-2 border-transparent">
-                                    Visión Dual <!--🔄-->
-                                </button>
-                            </div>
-
-                            <div id="color-img-rule" class="flex justify-center space-x-4 mb-4 text-center">
-                                <button id="rule-color-img"
-                                    class="flex-1 py-2 px-4 rounded-lg font-bold transition duration-150 border-2 border-transparent">
-                                    Espectro Completo <!--✨-->
-                                </button>
-                                <button id="rule-no-color-img"
-                                    class="flex-1 py-2 px-4 rounded-lg font-bold transition duration-150 border-2 border-transparent">
-                                    Tinta Negra <!--⬛-->
-                                </button>
-                            </div>
-                            </p>
-                        </div>
-
                     </div>
 
                     <div
@@ -269,6 +225,50 @@
                             </p>
                         </div>
                     </div>
+
+                    <div
+                        class="bg-tarjeta p-6 rounded-lg shadow-xl border border-gray-700 border-acento hover-acento transition duration-300 h-full flex flex-col justify-between">
+                        <div>
+                            <span class="text-acento text-4xl mb-3 block">⚙️</span>
+                            <h3 class="text-2xl font-bold mb-2 text-gray-100 font-code">Configuración</h3>
+                            <p class="text-texto-gris text-base">
+
+                            <div id="turn-pass-rule" class="flex justify-center space-x-4 mb-4 text-center">
+                                <button id="rule-pass-on-miss"
+                                    class="flex-1 py-2 px-4 rounded-lg font-bold transition duration-150 border-2 border-transparent">
+                                    Paso Táctico
+                                </button>
+                                <button id="rule-no-pass-on-miss"
+                                    class="flex-1 py-2 px-4 rounded-lg font-bold transition duration-150 border-2 border-transparent">
+                                    Ataque Continuo
+                                </button>
+                            </div>
+
+                            <div id="toggle-img-rule" class="flex justify-center space-x-4 mb-4 text-center">
+                                <button id="rule-no-toggle-img-word"
+                                    class="flex-1 py-2 px-4 rounded-lg font-bold transition duration-150 border-2 border-transparent">
+                                    Identidad Fija
+                                </button>
+                                <button id="rule-toggle-img-word"
+                                    class="flex-1 py-2 px-4 rounded-lg font-bold transition duration-150 border-2 border-transparent">
+                                    Visión Dual
+                                </button>
+                            </div>
+
+                            <div id="color-img-rule" class="flex justify-center space-x-4 mb-4 text-center">
+                                <button id="rule-color-img"
+                                    class="flex-1 py-2 px-4 rounded-lg font-bold transition duration-150 border-2 border-transparent">
+                                    Espectro Completo
+                                </button>
+                                <button id="rule-no-color-img"
+                                    class="flex-1 py-2 px-4 rounded-lg font-bold transition duration-150 border-2 border-transparent">
+                                    Tinta Negra
+                                </button>
+                            </div>
+                            </p>
+                        </div>
+                    </div>
+                    
                 </div>
             </div>
         </div>
