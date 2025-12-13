@@ -482,11 +482,11 @@ export function mostrarClaveSecretaURL(cadenaCifrada) {
             };
         });
 
-        numeroDeEquipos = tableroLogico.some(card => card.type === TIPOS_CARTA.VERDE) ? 3 : 2;
-        paseTurnoAlFallar = estadoPartida.turnPassRule !== undefined ? estadoPartida.turnPassRule : true;
-        cambiarImagenesPalabras = estadoPartida.toggleImgRule !== undefined ? JSON.parse(estadoPartida.toggleImgRule.toLowerCase()) : true;
-        colorImagenes = estadoPartida.imgColorRule !== undefined ? JSON.parse(estadoPartida.imgColorRule.toLowerCase()) : true;
-        selectedMode = estadoPartida.selectedMode || MODOS_DE_JUEGO.ORIGINAL;
+        numeroDeEquipos = estadoGuardado.numTeams || 2;
+        selectedMode = estadoGuardado.selectedMode || MODOS_DE_JUEGO.ORIGINAL;
+        paseTurnoAlFallar = (estadoGuardado.turnPassRule !== undefined && estadoGuardado.turnPassRule !== null) ? JSON.parse(estadoGuardado.turnPassRule.toLowerCase()) : true;
+        cambiarImagenesPalabras = (estadoGuardado.toggleImgRule !== undefined && estadoGuardado.toggleImgRule !== null) ? JSON.parse(estadoGuardado.toggleImgRule.toLowerCase()) : true;
+        colorImagenes = (estadoGuardado.imgColorRule !== undefined && estadoGuardado.imgColorRule !== null) ? JSON.parse(estadoGuardado.imgColorRule.toLowerCase()) : true;
 
         UI.setInitialDisplayMode(selectedMode);
         UI.ocultarBotonesInicio();
