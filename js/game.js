@@ -482,14 +482,14 @@ export function mostrarClaveSecretaURL(cadenaCifrada) {
             };
         });
 
-        numeroDeEquipos = estadoGuardado.numTeams || 2;
-        selectedMode = estadoGuardado.selectedMode || MODOS_DE_JUEGO.ORIGINAL;
-        paseTurnoAlFallar = (estadoGuardado.turnPassRule !== undefined && estadoGuardado.turnPassRule !== null) ? JSON.parse(estadoGuardado.turnPassRule.toLowerCase()) : true;
-        cambiarImagenesPalabras = (estadoGuardado.toggleImgRule !== undefined && estadoGuardado.toggleImgRule !== null) ? JSON.parse(estadoGuardado.toggleImgRule.toLowerCase()) : true;
-        colorImagenes = (estadoGuardado.imgColorRule !== undefined && estadoGuardado.imgColorRule !== null) ? JSON.parse(estadoGuardado.imgColorRule.toLowerCase()) : true;
+        numeroDeEquipos = estadoPartida.numTeams || 2;
+        selectedMode = estadoPartida.selectedMode || MODOS_DE_JUEGO.ORIGINAL;
+        paseTurnoAlFallar = (estadoPartida.turnPassRule !== undefined && estadoPartida.turnPassRule !== null) ? JSON.parse(estadoPartida.turnPassRule.toLowerCase()) : true;
+        cambiarImagenesPalabras = (estadoPartida.toggleImgRule !== undefined && estadoPartida.toggleImgRule !== null) ? JSON.parse(estadoPartida.toggleImgRule.toLowerCase()) : true;
+        colorImagenes = (estadoPartida.imgColorRule !== undefined && estadoPartida.imgColorRule !== null) ? JSON.parse(estadoPartida.imgColorRule.toLowerCase()) : true;
 
         UI.setInitialDisplayMode(selectedMode);
-        UI.ocultarBotonesInicio();
+        UI.ocultarBotonesInicio(false, numeroDeEquipos);
         UI.actualizarUIModoLider(tableroLogico, colorImagenes);
         UI.actualizarVisibilidadToggleBtn(estadoPartida.selectedMode, cambiarImagenesPalabras);
 
