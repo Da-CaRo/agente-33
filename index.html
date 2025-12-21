@@ -10,7 +10,8 @@
     <script src="https://unpkg.com/qrious@4.0.2/dist/qrious.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lipis/flag-icons@7.3.2/css/flag-icons.min.css" />
     <style>
         /* 1. DEFINICIÓN DE VARIABLES DE COLOR */
@@ -19,21 +20,21 @@
             --color-fondo: #111827;
             --color-tarjeta: #1F2937;
 
-            --color-texto-claro: #F3F4F6;
-            --color-texto-gris: #9CA3AF;
-            --color-borde: #374151;
+            --color-texto: #F3F4F6;
+            --color-texto-tarjeta: #9CA3AF;
+            --color-borde-tarjeta: #374151;
         }
 
         /* 2. APLICACIÓN DE VARIABLES A LOS ESTILOS GLOBALMENTE */
         body {
             font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
             background-color: var(--color-fondo);
-            color: var(--color-texto-claro);
+            color: var(--color-texto);
         }
 
         /* Para usar una fuente monoespaciada en títulos específicos */
         .font-code {
-            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-family: 'Space Mono', ui-monospace, SFMono-Regular, monospace;
         }
 
         /* Para usar una fuente del agente en títulos específicos */
@@ -51,11 +52,7 @@
         }
 
         .hover-acento:hover {
-            color: var(--color-acento) !important;
-        }
-
-        .border-acento:hover {
-            border-color: var(--color-acento) !important;
+            color: var(--color-acento);
         }
 
         .bg-tarjeta {
@@ -63,12 +60,16 @@
         }
 
         .border-tarjeta {
-            border-color: var(--color-borde);
+            border-color: var(--color-borde-tarjeta);
+        }
+
+        .border-tarjeta:hover {
+            border-color: var(--color-acento);
         }
 
         /* Ajuste específico para el texto gris de las tarjetas */
-        .text-texto-gris {
-            color: var(--color-texto-gris);
+        .text-tarjeta {
+            color: var(--color-texto-tarjeta);
         }
 
         /* Colores de revelación */
@@ -101,18 +102,6 @@
             background-color: #1f2937;
             color: white;
         }
-
-        /*
-        .flag-img {
-            /*Ajusta el tamaño de la imagen para que encaje bien en la tarjeta
-            width: 60%;
-            height: auto;
-            object-fit: contain;
-            /*Asegúrate de que la imagen no tenga margen extra
-            margin: auto;
-            /* Eliminar cualquier sombra que se haya aplicado a los emojis
-            filter: none;
-        }*/
 
         .fi {
             font-size: 4rem;
@@ -154,11 +143,13 @@
             <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     <div
-                        class="bg-tarjeta p-6 rounded-lg shadow-xl border border-gray-700 border-acento hover-acento transition duration-300 h-full flex flex-col justify-between">
+                        class="bg-tarjeta p-6 rounded-lg shadow-xl border border-tarjeta transition duration-300 h-full flex flex-col justify-between">
                         <div>
-                            <span class="text-acento text-4xl mb-3 block">🗂️</span>
-                            <h3 class="text-2xl font-bold mb-2 text-gray-100 font-code">Misiones</h3>
-                            <p class="text-texto-gris text-base">
+                            <div class="flex items-center space-x-3 mb-4">
+                                <span class="text-acento text-4xl block">🗂️</span>
+                                <h3 class="text-4xl font-bold">Misiones</h3>
+                            </div>
+                            <p class="text-tarjeta text-base">
                             <div class="flex flex-col space-y-2 mb-4">
                                 <select id="mode-select"
                                     class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded transition duration-150">
@@ -175,10 +166,13 @@
                     </div>
 
                     <div
-                        class="bg-tarjeta p-6 rounded-lg shadow-xl border border-gray-700 border-acento hover-acento transition duration-300 h-full flex flex-col justify-between">
+                        class="bg-tarjeta p-6 rounded-lg shadow-xl border border-tarjeta transition duration-300 h-full flex flex-col justify-between">
                         <div>
-                            <span class="text-acento text-4xl mb-3 block">2 Equipos</span>
-                            <h3 class="text-2xl font-bold mb-2 text-gray-100 font-code">(9/8/7/1)</h3>
+                            <div class="flex items-center space-x-3 mb-4">
+                                <span class="text-acento text-4xl block"></span>
+                                <h3 class="text-4xl font-bold">2 Equipos</h3>
+                            </div>
+                            <h3 class="text-xl font-bold mb-2 text-tarjeta">(9/8/7/1)</h3>
                             <p class="text-texto-gris text-base">
                             <div class="flex flex-col space-y-2">
                                 <button id="start-random-btn-2"
@@ -199,10 +193,13 @@
                     </div>
 
                     <div
-                        class="bg-tarjeta p-6 rounded-lg shadow-xl border border-gray-700 border-acento hover-acento transition duration-300 h-full flex flex-col justify-between">
+                        class="bg-tarjeta p-6 rounded-lg shadow-xl border border-tarjeta transition duration-300 h-full flex flex-col justify-between">
                         <div>
-                            <span class="text-acento text-4xl mb-3 block">3 Equipos</span>
-                            <h3 class="text-2xl font-bold mb-2 text-gray-100 font-code">(8/8/8/1)</h3>
+                            <div class="flex items-center space-x-3 mb-4">
+                                <span class="text-acento text-4xl block"></span>
+                                <h3 class="text-4xl font-bold">3 Equipos</h3>
+                            </div>
+                            <h3 class="text-xl font-bold mb-2 text-tarjeta">(8/8/8/1)</h3>
                             <p class="text-texto-gris text-base">
                             <div class="flex flex-col space-y-2 justify-center">
                                 <button id="start-random-btn-3"
@@ -227,10 +224,12 @@
                     </div>
 
                     <div
-                        class="bg-tarjeta p-6 rounded-lg shadow-xl border border-gray-700 border-acento hover-acento transition duration-300 h-full flex flex-col justify-between">
+                        class="bg-tarjeta p-6 rounded-lg shadow-xl border border-tarjeta transition duration-300 h-full flex flex-col justify-between">
                         <div>
-                            <span class="text-acento text-4xl mb-3 block">⚙️</span>
-                            <h3 class="text-2xl font-bold mb-2 text-gray-100 font-code">Configuración</h3>
+                            <div class="flex items-center space-x-3 mb-4">
+                                <span class="text-acento text-4xl block">⚙️</span>
+                                <h3 class="text-4xl font-bold">Configuración</h3>
+                            </div>
                             <p class="text-texto-gris text-base">
 
                             <div id="turn-pass-rule" class="flex justify-center space-x-4 mb-4 text-center">
@@ -268,7 +267,7 @@
                             </p>
                         </div>
                     </div>
-                    
+
                 </div>
             </div>
         </div>
@@ -351,18 +350,22 @@
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex flex-col md:flex-row justify-between items-center text-center md:text-left">
 
-                <p class="text-xs text-texto-gris mb-4 md:mb-0">
+                <p class="text-xs text-tarjeta mb-4 md:mb-0">
                     &copy; <span id="currentYearFooter"></span> <span class="font-code">
-                        <span class="-mr-1 inline-block">Da_CaRo</span> Labs
-                    </span> Desarrollado con pasión.
+                        Da_CaRo
+                    </span>
                 </p>
 
                 <div class="flex space-x-6 items-center">
+                    <a href="https://da-caro.github.io/labs" target="_blank"
+                        class="text-tarjeta hover-acento transition duration-300 text-sm">
+                        Labs
+                    </a>
                     <a href="https://github.com/da-caro" target="_blank"
-                        class="text-texto-gris hover-acento transition duration-300 text-sm">
+                        class="text-tarjeta hover-acento transition duration-300 text-sm">
                         GitHub
                     </a>
-                    <button id="clear-storage-btn" class="text-texto-gris hover-acento transition duration-300 text-sm">
+                    <button id="clear-storage-btn" class="text-tarjeta hover-acento transition duration-300 text-sm">
                         Borrar Variables
                     </button>
                 </div>
